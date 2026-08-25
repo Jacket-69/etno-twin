@@ -28,7 +28,9 @@ Decoupling is an explicitly supported workflow, not a side effect: the documenta
 describes simulating ahead of time *"on a cluster or using a different programming
 language or environment"* and feeding the pairs in afterwards.
 
-**Amortisation is not a preference here — the success criteria require it.**
+**Amortisation is not a preference here — the success criteria require it** *(the
+coverage-cost argument below is cited from the literature, not yet verified against the
+paper; verify before it carries weight in the final ADR)*.
 `vision.md` commits to posterior calibration including credible-interval coverage as an
 evaluable metric. Simulation-based calibration evaluates the posterior over ~200
 additional synthetic observations, which is only affordable when the posterior is
@@ -115,11 +117,19 @@ search-result summaries rather than sources.
   surfaced was an open repository issue titled "Using the F95 Survey Sim for
   publication in PyPI": an intention, not a shipped artifact.
 - **There is, however, a Python package inside the repository:** `python/ossssim`,
-  installable with `pip install .` from a checkout. Its `setup.py` runs `make Modules`
-  over the F95 sources at install time. **Consequence, and it is a hard one:**
-  installing `ossssim` requires a Fortran toolchain, which collides with constraint 4
-  (the core must be exercisable without Fortran). The package therefore cannot be a
-  dependency of the core — only of the adapter, and CI cannot install it.
+  installable with `pip install .` from a checkout. Read directly from its
+  [`setup.py`](https://github.com/OSSOS/SurveySimulator/blob/master/python/setup.py):
+  at install time it calls `subprocess.run([make, "-s", "Modules"], cwd="../fortran/F95")`
+  and then moves the generated `SurveySubsF95.py` and `_SurveySubsF95.so` into
+  `ossssim/lib`. Two facts follow from that snippet. Installing requires a **Fortran
+  toolchain and `make` on PATH**; and because the build path is the relative
+  `../fortran/F95`, the package only installs **from inside a full checkout of the
+  repository** — it is not a standalone distributable.
+
+  **Consequence, and it is a hard one:** this collides with constraint 4 (the core must
+  be exercisable without Fortran). `ossssim` therefore cannot be a dependency of the
+  core — only of the adapter — and CI cannot install it, which is exactly why
+  integration tests are excluded from the pipeline by design.
 - Interface shape: a **Driver program** consuming a population model (lookup table such
   as the CFEPS L7 model, or parametric `.in` files) plus per-survey characterisation
   directories (pointing history and efficiency functions per block), producing a list
