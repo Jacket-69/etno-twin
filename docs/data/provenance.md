@@ -30,9 +30,12 @@ Simulation campaign artifacts carry three further fields, each of them establish
 measurement rather than assumed (see
 [SP-1](../architecture/spike-sp1-integration-surface.md)):
 
-- **Random seed.** The survey simulator seeds itself from `urandom` unless told
-  otherwise, so two identical invocations produce different detection counts. Without a
-  recorded and controlled seed, no campaign result is reproducible.
+- **Random seed.** The survey simulator seeds itself from `urandom`, so two identical
+  invocations produce different detection counts. The seed is **recorded**, taken from
+  the run log — not pinned to a constant, which the tool's authors explicitly warn
+  against for scientific analysis. Campaign seeds are derived as independent streams
+  from one recorded master seed, so runs stay uncorrelated and the campaign stays
+  auditable.
 - **Prior specification** — distribution, hyperparameters, version. Stored simulations
   are valid only for the prior their parameters were drawn from.
 - **Ephemeris version.** The simulator resolves positions against JPL ephemerides

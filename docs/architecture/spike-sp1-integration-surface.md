@@ -195,22 +195,54 @@ source
 seed = args.get("seed", int.from_bytes(urandom(4), "big"))
 ```
 
-The seed defaults to `urandom` and **`sorcha run --help` exposes no flag to set it**.
-It is only settable through the `args` dictionary — that is, from Python. The run log
-does record what was used (`the base rng seed is 4256246705`, plus a derived seed per
-module), so a run is *auditable* after the fact even when it is not repeatable.
+The seed defaults to `urandom`, **`sorcha run --help` exposes no flag to set it**, and
+a search of the whole installed package finds **no environment variable** either
+(no `os.environ`, no `getenv`). The run log does record what was used (`the base rng
+seed is 4256246705`, plus a derived seed per module), so a run is *auditable* after the
+fact even when it is not repeatable.
 
-Consequences, and they cut in three directions:
+**And the authors deliberately do not want it pinned.** In sorcha's own test helper
+([`diffTestUtils.py:115`](https://github.com/dirac-institute/sorcha/blob/main/src/sorcha/utilities/diffTestUtils.py)),
+a fixed seed is injected by overwriting a private attribute — `args._rngs =
+PerModuleRNG(2023)` — under two explicit warnings: *"Never use a fixed seed for
+scientific analysis. This is for testing purposes only"* and *"This is only acceptable
+in a test and should never be used for science results."*
 
-1. **Reproducibility is a committed metric (§13), so the seed must be controlled.**
-   This is a concrete argument *in favour* of the in-process entry point that Q1 found
-   unattractive — it is the only supported way to fix the seed. The port is not
-   ideological, then: it exists to own the seed.
-2. **The seed is a mandatory manifest field**, alongside the prior specification.
-3. **Campaign design constraint:** with 10³–10⁶ simulations, seeds can be neither
-   reused nor casually incremented — the source warns about hard-to-detect
-   correlations. Independent streams (`numpy.random.SeedSequence` spawning or
-   equivalent) are required, and that decision belongs in the campaign layer.
+That reframes the finding. **The goal is not to pin the seed; it is to record it and to
+derive campaign seeds properly.** Concretely:
+
+1. **Two different properties must not be confused.** *Repeatability of a single run*
+   is achieved by recording the seed the log reports and re-injecting it — possible,
+   but only by touching a private attribute, so it is fragile and unsupported, and
+   suitable for debugging rather than for science. *Reproducibility of the campaign* —
+   which is what §13 commits to and what approved milestone 8 now defines — is achieved
+   by regenerating results **from persisted artifacts**, not by re-running the
+   simulator and hoping for identical bits.
+2. **The seed is a mandatory manifest field** regardless: recorded per run, taken from
+   the log if not injected, alongside the prior specification and the ephemeris
+   version.
+3. **Campaign design constraint:** across 10³–10⁶ simulations, seeds can be neither
+   reused nor casually incremented — the source warns about hard-to-detect correlations
+   between runs. Independent streams (`numpy.random.SeedSequence` spawning or
+   equivalent) derived from one recorded master seed are required, and that decision
+   belongs to the campaign layer, not to the adapter.
+
+**Correction of the record:** an earlier version of this note, and the commit message
+that introduced it, argued that the in-process entry point is *required in order to own
+the seed*, and that this settled Q1's reluctance about it. That overstated the case —
+the finding above shows pinning is discouraged by the tool's own authors. The in-process
+path buys the ability to *re-inject* a recorded seed for debugging, which is real but
+much weaker than "required".
+
+### Reconciling Q1 with these measurements
+
+Q1 found the in-process entry point unattractive: file-path arguments, `sys.exit` on
+validation failure, no stability guarantee. Nothing here overturns that. The reconciled
+position for the ADR: **the adapter defaults to the supported CLI path**, because
+inputs are staged on disk anyway and the campaign is many-processes-then-collate. If
+some capability later requires calling in-process, that call is pinned to an exact
+version and isolated in its own process, so a `sys.exit` inside the library kills a
+worker rather than the campaign — and that cost is declared rather than discovered.
 
 ### Ephemerides are an external, versioned dependency
 
