@@ -26,6 +26,18 @@ Each snapshot carries a manifest recording, at minimum:
 - Code version that produced the snapshot.
 - Row count and schema fingerprint.
 
+Simulation campaign artifacts carry three further fields, each of them established by
+measurement rather than assumed (see
+[SP-1](../architecture/spike-sp1-integration-surface.md)):
+
+- **Random seed.** The survey simulator seeds itself from `urandom` unless told
+  otherwise, so two identical invocations produce different detection counts. Without a
+  recorded and controlled seed, no campaign result is reproducible.
+- **Prior specification** — distribution, hyperparameters, version. Stored simulations
+  are valid only for the prior their parameters were drawn from.
+- **Ephemeris version.** The simulator resolves positions against JPL ephemerides
+  fetched into a local cache; a result depends on which ones were used.
+
 Rebuilding a snapshot from the same source and cut must produce the same content hash.
 When it does not, that is a finding to investigate — the source changed history — not
 a test to relax.

@@ -159,6 +159,79 @@ was still the right call — the terrain was different from what was assumed, in
 directions — but the reason is "it had not been measured", not "it is easier than
 expected".**
 
+## Measured — sorcha's official demo, end to end *(2026-08-24, on the development workstation)*
+
+The demo is 10 objects against **216,233 Rubin visits** (one year of cadence,
+`baseline_v2.0_1yr.db`, 17 MB). Two of the ten are large-orbit objects — semi-major
+axes of 103.7 and 99.3 au — which makes them analogues of this project's target
+population.
+
+| Measurement | Value |
+|---|---|
+| Wall-clock, warm cache | **28.9 s** |
+| Output | 156.7 KB, 618 detections → **~260 bytes per detection** |
+| Objects detected | **6 of 10** |
+| Ephemeris cache, one-off | **780 MB** |
+
+**Three findings, in order of how much they matter.**
+
+### The selection function is visible in the demo itself
+
+Four of the ten input objects were never detected. Sharper still: of the two
+large-orbit analogues, `2011_OB60` (a = 103.7 au) was detected 52 times and
+`2011_WJ157` (a = 99.3 au) not once. Two nearly identical orbits, opposite
+observational fates. That is the bias this project exists to correct, reproduced in
+under thirty seconds.
+
+### Runs are not reproducible by default, and the seed is not on the CLI
+
+Two identical invocations produced **626 and 618 detections**. The cause is in the
+source
+([`sorcha/utilities/sorchaArguments.py:89`](https://github.com/dirac-institute/sorcha/blob/main/src/sorcha/utilities/sorchaArguments.py)):
+
+```python
+# WARNING: Take care if manually setting the seed. Re-using seeds between
+# simulations may result in hard-to-detect correlations in simulation outputs.
+seed = args.get("seed", int.from_bytes(urandom(4), "big"))
+```
+
+The seed defaults to `urandom` and **`sorcha run --help` exposes no flag to set it**.
+It is only settable through the `args` dictionary — that is, from Python. The run log
+does record what was used (`the base rng seed is 4256246705`, plus a derived seed per
+module), so a run is *auditable* after the fact even when it is not repeatable.
+
+Consequences, and they cut in three directions:
+
+1. **Reproducibility is a committed metric (§13), so the seed must be controlled.**
+   This is a concrete argument *in favour* of the in-process entry point that Q1 found
+   unattractive — it is the only supported way to fix the seed. The port is not
+   ideological, then: it exists to own the seed.
+2. **The seed is a mandatory manifest field**, alongside the prior specification.
+3. **Campaign design constraint:** with 10³–10⁶ simulations, seeds can be neither
+   reused nor casually incremented — the source warns about hard-to-detect
+   correlations. Independent streams (`numpy.random.SeedSequence` spawning or
+   equivalent) are required, and that decision belongs in the campaign layer.
+
+### Ephemerides are an external, versioned dependency
+
+The first run downloads **780 MB** into `~/.cache/sorcha`: JPL DE440 planetary
+ephemerides, the small-body file `sb441-n16.bsp`, SPICE kernels, and the Minor Planet
+Center observatory-codes file. Three consequences: the first run needs network access;
+on a cluster that cache must be pre-staged or the compute nodes need egress; and **the
+ephemeris version is provenance** — a result depends on which ephemerides produced it,
+so it belongs in the manifest.
+
+### Extrapolation — explicitly an extrapolation, not a measurement
+
+At ~2.9 s per object per simulated year, a synthetic population of 10³ objects is
+roughly 48 minutes of CPU per single simulation, and the campaign needs one simulation
+per parameter draw. At 10⁴ draws that is on the order of hundreds of CPU-days before
+any parallelism. If that order of magnitude survives contact with the real
+configuration — longer cadence, vectorisation, per-object cost that may not be linear —
+then **the simulation campaign is the dominant cost of the entire project**, which
+settles the architecture question and justifies the cluster on its own. Confirming or
+refuting it is the job of step 2 of the tracer bullet.
+
 ## Q3 — ASSIST/REBOUND: API shape, state format, checkpointing *(partially answered)*
 
 REBOUND ships **Simulationarchive**, which provides *"exact reproducibility of N-body
