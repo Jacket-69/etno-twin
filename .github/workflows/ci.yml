@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install project and dev dependencies
+        run: uv sync --all-groups
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Typecheck
+        run: uv run mypy
+
+      # Integration tests are excluded by design: they need a Fortran toolchain and
+      # external survey characterisation archives. The core must be exercisable
+      # against fake simulators — see docs/quality/testing-strategy.md.
+      - name: Unit tests
+        run: uv run pytest -m "not integration"

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local tooling
+CLAUDE.md
+AGENTS.md
+.claude/
+
+# Data — snapshots and campaign outputs are large and reproducible
+data/raw/
+data/snapshots/
+data/campaigns/
+outputs/
+*.db
+*.h5
+*.parquet
+
+# Environment
+.env
+.env.*
