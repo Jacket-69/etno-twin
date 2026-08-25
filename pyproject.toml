@@ -4,9 +4,11 @@ version = "0.0.0"
 description = "Population-level inference on extreme trans-Neptunian objects under joint orbital and selection uncertainty"
 readme = "README.md"
 requires-python = ">=3.12"
-license = { text = "TODO" }
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [{ name = "Benjamín López Huidobro" }]
 keywords = ["astronomy", "trans-neptunian", "simulation-based-inference", "survey-bias"]
+classifiers = ["License :: OSI Approved :: GNU General Public License v3 (GPLv3)"]
 dependencies = []
 
 [project.scripts]

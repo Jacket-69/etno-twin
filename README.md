@@ -83,5 +83,15 @@ as ADRs.
 
 ## License
 
-TODO — decide before the repository is used by third parties. Candidates: MIT
-(maximum reuse) or BSD-3-Clause (common in astronomy tooling).
+**GPL-3.0-only.** See [LICENSE](LICENSE).
+
+Chosen deliberately over a permissive licence. The scientific tools this project builds
+on are copyleft — sorcha carries GPLv3 on the modules that implement the selection
+function, and REBOUND and ASSIST are GPL-3.0 — so a permissive licence would turn the
+process boundary between this code and those tools into a legal requirement rather than
+an engineering decision. Under GPL-3.0 that boundary can be placed wherever the
+measurements say it belongs.
+
+The OSSOS Survey Simulator is distributed under EUPL v1.1; interoperating with it across
+a process boundary is unaffected, but its compatibility list must be checked before any
+of its code is vendored into this repository.
