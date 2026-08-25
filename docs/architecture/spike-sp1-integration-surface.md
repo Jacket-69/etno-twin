@@ -348,16 +348,31 @@ size in bytes per particle-snapshot. Neither can revive the in-memory option.
 
 Source: [REBOUND documentation](https://rebound.hanno-rein.de/)
 
-## Q5 — Does a public pipeline already combine a survey simulator with SBI?
+## Q5 — Does a public pipeline already combine a survey simulator with SBI? *(answered)*
 
-**Moved out of the ADR dependency chain.** It cannot change the architectural style;
-it bears on the *novelty* of the thesis, which is specific objective 1 and has its own
-protocol requirement (documented queries, sources, inclusion criteria, results table).
-Kept here only as a pointer so the spike does not silently absorb it.
+**Answered on 2026-08-25. Full protocol, criteria, queries and grading:
+[novelty verification](../product/novelty-verification.md).** It carries specific
+objective 1 of the thesis, so the record lives there rather than here.
 
-Search terms for that work: `"simulation-based inference" OR "neural posterior"` ×
-`"survey simulator" OR "selection function"` × `TNO / KBO / trans-Neptunian`, plus the
-neighbouring `ABC + debiasing + OSSOS`.
+Short form: **not in the trans-Neptunian domain** — the canonical reference of the field
+pairs the survey simulator with classical statistical comparison, not amortised
+inference. **But the pattern is established in analogous domains with public code**, so
+the thesis claims *first application to this domain*, never *first time this is done*.
+Nearest neighbour: Stjörnumál (arXiv:2607.28725) — SNANA plus NPE/NRE over DES.
+
+**And it turned out to bear on the architecture after all**, which is why it is no longer
+just a pointer. The cost-collapsing idea — pay the simulator once over a large library,
+compose each dataset by reweighting it — **has a working precedent inside an NPE
+pipeline**: Dust2Dust (arXiv:2112.04456) builds a simulation bank once and
+importance-samples from it; Stjörnumál trains on the result. Two consequences here:
+
+- The **campaign stage may split into library-build and composition**, with an artifact
+  boundary between them. That is a seam the tracer bullet should be able to accommodate,
+  and it strengthens the artifact option rather than weakening it.
+- Neither link of that genealogy gives a quantitative validity criterion for the
+  reweighting. One exists elsewhere — `N_eff > 4·N_obs` (Farr 2019, arXiv:1904.10879,
+  after equation 12) — outside the NPE frame. **Step 2 therefore measures `N_eff`**, and
+  that measurement is also where the thesis makes its own contribution.
 
 ## Q6 — Who executes the DAG? *(new question, added 2026-08-24)*
 

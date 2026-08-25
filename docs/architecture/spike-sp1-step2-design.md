@@ -34,6 +34,24 @@ SBC and posterior.** Two trainings were happening anyway; with two seeds, the
 "statistical replication" claim stops being a promise and becomes a measured number,
 disarming the "archiving is not reproducing" objection before it is raised.
 
+**5 · Reweighted-library viability.** Added 2026-08-25, after
+[the novelty verification](../product/novelty-verification.md) found the idea already has
+a working precedent inside an NPE pipeline — and found that neither link of that
+genealogy measures when it stops being valid.
+
+Build one library at the largest N of the sweep, then compose datasets for θ values at
+increasing distance from the library's reference distribution and record, for each one:
+the **effective sample size** `N_eff`, the fraction of proposals rejected as out of
+range, and the wall-clock saved against simulating that θ from scratch. The published
+criterion to report against is **`N_eff > 4·N_obs`** (Farr 2019, arXiv:1904.10879, after
+equation 12), imported from hierarchical inference and never yet applied to this use.
+
+This is the cheapest measurement in the whole step and the one with the largest
+consequence: it prices the difference between one simulator campaign and thousands, and
+it is where the thesis has something of its own to say. If `N_eff` collapses before θ
+reaches the edge of the prior, the campaign stage stays monolithic; if it holds, the
+stage splits into library-build and composition with an artifact boundary between them.
+
 Measurements are written to a `measurements.json` artifact, never to prints: they are
 the evidence the ADR will cite.
 
