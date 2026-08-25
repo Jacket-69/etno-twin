@@ -26,7 +26,9 @@ scheduled: the spike may change how milestones 2, 4 and 6 are built. Scope does 
 change — the deliverables come from the thesis proposal — only the shape of the
 implementation.
 
-Milestone 8 is worded deliberately. Bit-for-bit determinism is pursued at exactly two
+Milestone 8 is worded deliberately, and the wording was approved by the author on
+2026-08-24 because it interprets a committed metric of the thesis proposal (§13,
+"execution through a single command"). Bit-for-bit determinism is pursued at exactly two
 points — input snapshots and the regeneration of final figures and tables — and **not**
 through GPU training, which PyTorch does not guarantee. Chasing it there would make the
 gate unreachable and turn the commitment into debt.

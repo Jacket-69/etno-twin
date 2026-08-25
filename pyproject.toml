@@ -18,6 +18,11 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.11",
 ]
+spike = [
+    "sbi>=0.27.0",
+    "snakemake>=9.25.2",
+    "sorcha>=1.2.1",
+]
 
 [build-system]
 requires = ["hatchling"]

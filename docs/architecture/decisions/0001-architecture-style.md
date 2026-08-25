@@ -88,10 +88,13 @@ converge on the same formulation: *artifacts at stage boundaries, memory within 
 stage.* One number is missing before this becomes `accepted`: the wall-clock and byte
 cost at those boundaries, from the tracer bullet described in the spike note.
 
-A scoping constraint that comes with it: the orchestrator is **bought, not built**
-(Snakemake, DVC or make). The engineering contribution of this thesis is the domain
+A scoping constraint comes with it, **decided on 2026-08-24**: the orchestrator is
+**bought, not built**. The engineering contribution of this thesis is the domain
 system — unified catalogue with provenance, selection functions behind one interface,
-joint uncertainty propagation — not workflow middleware. See Q6 in the spike note.
+joint uncertainty propagation — not workflow middleware. *Which* orchestrator (Snakemake,
+DVC, plain make) remains open and is decided with its own trade-off analysis once the
+tracer bullet reports artifact shapes and sizes, and once the target cluster's scheduler
+situation is known. See Q6 in the spike note.
 
 ## Open questions (the spike answers these)
 
