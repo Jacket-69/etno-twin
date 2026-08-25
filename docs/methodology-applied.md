@@ -44,9 +44,9 @@ roadmap, not invented sprints.
 - **ADR-0001 is stamped as `proposed`, not `accepted`.** The architectural style is
   deliberately left open until the reconnaissance spike measures the real integration
   surface of sorcha, the OSSOS Survey Simulator, ASSIST/REBOUND and the SBI library.
-  A first search already invalidated one working assumption (that wrapping Fortran
-  would be the hard part — both simulators ship Python bindings), which is evidence
-  enough that deciding today would mean deciding blind.
+  The first pass of that spike already overturned two working assumptions in opposite
+  directions — see [SP-1](architecture/spike-sp1-integration-surface.md) — which is
+  evidence enough that deciding at bootstrap time would have meant deciding blind.
 - **No `operations/` tree.** Nothing is deployed or operated: the deliverable is a
   package that runs locally and on a cluster, not a service.
 

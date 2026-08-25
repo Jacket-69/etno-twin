@@ -29,12 +29,11 @@ Four hard constraints shape the style:
 4. Tests must cover data transformation and integration with external simulators,
    which means the core has to be exercisable without running Fortran.
 
-**This decision is deliberately left open.** A first reconnaissance search on
-2026-08-24 invalidated the assumption that wrapping the Fortran simulator would be the
-hard part: the OSSOS Survey Simulator ships `F77/python` and `F95/python` callable
-modules and a PyPI distribution that compiles the Fortran at install time, and sorcha
-— though canonically a CLI over files — can also be driven from Python. If one search
-changed the terrain, the terrain is not yet known well enough to choose.
+**This decision is deliberately left open** until the reconnaissance spike measures the
+real integration surface of the external tools, because a first pass showed the terrain
+was not what had been assumed — in both directions. See
+[SP-1](../spike-sp1-integration-surface.md) for findings and sources as they are
+established.
 
 ## Decision
 
