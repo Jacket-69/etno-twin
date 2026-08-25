@@ -19,7 +19,7 @@ this one tracks the software.
 | 5 | **Classical baseline reproduced** | Published results of the reference analysis are reproduced within stated tolerance over the same sample | Blocked by 4 |
 | 6 | **Simulation campaign at scale** | A campaign survives an interrupted run and resumes without recomputing completed work; throughput measured in object-visits per unit time on both machines | Blocked by 4 |
 | 7 | **Inference and diagnostics** | Posterior calibrated on synthetic populations with known truth; credible-interval coverage within tolerance | Blocked by 6 |
-| 8 | **One-command reproduction** | A clean clone regenerates every published figure and table from persisted artifacts — including the trained network — with one documented command. Retraining from scratch is a documented option with a declared tolerance, **not** the default path | Blocked by 7 |
+| 8 | **One-command reproduction** | Two tiered claims, named as such. **Reproducibility:** a clean clone regenerates every published figure and table from persisted artifacts — including the trained network — with one documented command. **Replicability:** a fresh master seed yields posterior and coverage compatible within a declared tolerance. Retraining from scratch is the replication claim, never the default path | Blocked by 7 |
 
 Milestone 1 is a spike, so everything after it is marked blocked rather than
 scheduled: the spike may change how milestones 2, 4 and 6 are built. Scope does not

@@ -209,15 +209,37 @@ scientific analysis. This is for testing purposes only"* and *"This is only acce
 in a test and should never be used for science results."*
 
 That reframes the finding. **The goal is not to pin the seed; it is to record it and to
-derive campaign seeds properly.** Concretely:
+derive campaign seeds properly.**
 
-1. **Two different properties must not be confused.** *Repeatability of a single run*
-   is achieved by recording the seed the log reports and re-injecting it — possible,
-   but only by touching a private attribute, so it is fragile and unsupported, and
-   suitable for debugging rather than for science. *Reproducibility of the campaign* —
-   which is what §13 commits to and what approved milestone 8 now defines — is achieved
-   by regenerating results **from persisted artifacts**, not by re-running the
-   simulator and hoping for identical bits.
+**The deeper reason, and the one to write in the thesis: the simulator's stochasticity
+is part of the forward model, and the science depends on it.** What sorcha randomises —
+astrometric and photometric noise, detection-probability draws — is exactly the noise of
+p(x|θ) that neural posterior estimation must learn. Pinning the seed across a campaign
+would not merely be fragile; it would be **scientifically wrong**, introducing the
+between-run correlations the source itself warns about. Per-run irreproducibility is not
+an engineering defect to work around. It is a property the inference relies on.
+
+Concretely:
+
+1. **Three different properties must not be confused** — and the ACM artifact-badging
+   vocabulary names them, which is the terminology a committee will recognise:
+   *repeatability* (same team, same setup), *reproducibility* (independent team, the
+   authors' artifacts), *replicability* (independent team, its own artifacts).
+   Regenerating results from persisted artifacts is **literally the ACM definition of
+   reproducibility**, not "archiving results".
+   - *Repeatability* here means re-injecting a recorded seed — available through the
+     `seed` key of the `sorchaArguments` constructor dict (undocumented, but anticipated
+     by the code's own warning comment) or, more crudely, by overwriting `_rngs` as the
+     test helper does. Useful for debugging, not for science.
+   - *Reproducibility* is what §13 commits to and approved milestone 8 defines:
+     regenerate every figure and table from persisted artifacts.
+   - *Replicability* is the stronger claim, and it is the one that disarms a demanding
+     reviewer instead of arguing with them: a fresh master seed must yield a posterior
+     and coverage compatible **within a declared tolerance**. Bit-identity when
+     regenerating a Monte Carlo proves determinism, not correctness; statistical
+     replication proves the result. The same tiering applies to GPU training, which is
+     non-deterministic in its own right: the persisted trained network is a reproducible
+     artifact, and retraining is a replication claim.
 2. **The seed is a mandatory manifest field** regardless: recorded per run, taken from
    the log if not injected, alongside the prior specification and the ephemeris
    version.
@@ -237,12 +259,28 @@ much weaker than "required".
 ### Reconciling Q1 with these measurements
 
 Q1 found the in-process entry point unattractive: file-path arguments, `sys.exit` on
-validation failure, no stability guarantee. Nothing here overturns that. The reconciled
-position for the ADR: **the adapter defaults to the supported CLI path**, because
-inputs are staged on disk anyway and the campaign is many-processes-then-collate. If
-some capability later requires calling in-process, that call is pinned to an exact
-version and isolated in its own process, so a `sys.exit` inside the library kills a
-worker rather than the campaign — and that cost is declared rather than discovered.
+validation failure, no stability guarantee. Nothing here overturns that — and a count
+over the installed package makes it sharper: there are **65 `sys.exit` calls** spread
+across the driver, the modules and the readers. That rules out the two apparent
+alternatives. Catching `SystemExit` is possible (it is an exception) but leaves global
+logging state, half-read files and RNG state undefined across 65 exit points —
+whack-a-mole, not a strategy. Pre-validating ourselves covers exactly one of them
+(`validate_arguments()` raises `ValueError`; the `sys.exit` is in the wrapper).
+
+**Process isolation is the only robust boundary — and it costs nothing, because it is
+already the design.** The "own process" is not a special sandbox: it is the standard
+campaign worker that many-processes-then-collate already imposes. Two consequences
+follow: a dead worker means *a missing artifact plus a recorded reason* (exit code,
+stderr, captured log), which is precisely what makes a campaign resumable; and the
+version pin needs a **canary test** against the pinned version asserting the
+non-contractual surfaces we depend on — that the constructor honours `args.get("seed")`,
+the exact format of the log line the seed is parsed from, and the behaviour of
+`return_only`. A version bump then breaks in CI instead of breaking 300 CPU-days into a
+campaign.
+
+The reconciled position for the ADR: **the adapter defaults to the supported CLI path**,
+every invocation runs in its own worker process, and any in-process call is pinned and
+canary-tested.
 
 ### Ephemerides are an external, versioned dependency
 
@@ -253,16 +291,49 @@ on a cluster that cache must be pre-staged or the compute nodes need egress; and
 ephemeris version is provenance** — a result depends on which ephemerides produced it,
 so it belongs in the manifest.
 
-### Extrapolation — explicitly an extrapolation, not a measurement
+### Extrapolation — and its three known defects
 
-At ~2.9 s per object per simulated year, a synthetic population of 10³ objects is
-roughly 48 minutes of CPU per single simulation, and the campaign needs one simulation
-per parameter draw. At 10⁴ draws that is on the order of hundreds of CPU-days before
-any parallelism. If that order of magnitude survives contact with the real
-configuration — longer cadence, vectorisation, per-object cost that may not be linear —
-then **the simulation campaign is the dominant cost of the entire project**, which
-settles the architecture question and justifies the cluster on its own. Confirming or
-refuting it is the job of step 2 of the tracer bullet.
+At ~2.9 s per object per simulated year, 10³ objects is roughly 48 minutes of CPU per
+simulation; at 10⁴ parameter draws, on the order of **335 CPU-days** before any
+parallelism. The arithmetic checks out, but the number carries two biases pulling in
+opposite directions and one unknown that dominates both:
+
+- **Fixed cost is not separated from marginal cost.** With N = 10, the 28.9 s are
+  dominated by fixed overhead — reading a 216k-visit pointing database, precomputing
+  pointing information, loading kernels, imports. The model is
+  `T = T_fixed + N · t_marginal`, and a single N cannot separate them, so 2.9 s/object
+  is an **upper bound on the marginal cost, possibly by an order of magnitude**. This
+  extrapolation therefore *overestimates*. Fixing it is a sweep at N = 10 / 100 / 1000
+  and a straight-line fit — the first thing step 2 must do.
+- **Cadence pushes the other way.** The full survey is ~10 years, roughly 2M visits. If
+  per-object cost scales with visits, that is ×10. This extrapolation *underestimates*.
+  The two effects may roughly cancel, which is exactly why the split gets measured
+  rather than argued.
+- **The dominant unknown is objects per draw, not seconds per object.** 10³ is an
+  assumption. The demo itself shows how brutal the selection is — 52 detections versus
+  zero for near-identical orbits — so if each draw needs enough *detected* objects to
+  compose x, the input population per draw could be 10⁴–10⁵. That uncertainty dwarfs
+  any refinement of the timing.
+
+**And there is a design that could collapse the whole cost — worth testing early.**
+Whether an object is detected depends on (orbit, H, colours), not on θ directly; θ only
+decides *which objects exist*. So one could pay for the simulator **once**, over a large
+library sampled from a broad proposal, and compose each x by resampling or reweighting
+that library per θ. Cost collapses from draws × population to library size. Two
+caveats, both nameable: pairs composed from a shared library are not i.i.d. draws from
+the joint, which is what NPE assumes — tolerable with a large library and moderate
+reuse, but a knowledgeable examiner can press on it, so the toy must check it against
+fresh simulations; and whether this is standard practice in the TNO debiasing
+literature is **unverified** — it belongs to the Q5 search. If it works, the campaign
+stage splits into **library-build** (expensive, rare) and **composition** (cheap, per θ)
+with an artifact boundary between them — which changes what "campaign" means in the
+six-stage list and belongs in the ADR as a consequence, not buried here.
+
+If the order of magnitude does survive, nothing already settled is overturned: 335
+CPU-days without resumption would be negligence, so artifacts move from *correct* to
+*mandatory*; the GPU does not help the simulator, which is CPU-bound, so the two CPU
+nodes are what count and the A100 node is for training; and the compute nodes' network
+egress becomes an early question, because 780 MB of ephemerides must be pre-staged.
 
 ## Q3 — ASSIST/REBOUND: API shape, state format, checkpointing *(partially answered)*
 
