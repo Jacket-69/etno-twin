@@ -74,6 +74,25 @@ Artifacts between major phases, memory within a phase.
 - Cons: choosing it *now*, without stating where the seam goes, tends to mean the seam
   gets decided by whatever is urgent each week.
 
+## Interim finding (2026-08-24)
+
+Option B is out, and not because of the spike: `provenance.md` requires
+content-addressed snapshots at the input boundary, milestones 6 and 8 require campaign
+resumption and one-command reproduction, and constraint 1 requires a code path shared
+with a machine that does not share our memory. Those documents are already accepted.
+
+The live decision is therefore **A versus C — where the artifact discipline stops** —
+and the spike has located the seams: snapshot → selection, survey-simulator outputs,
+campaign → training. With the seams known, C's objection collapses and both options
+converge on the same formulation: *artifacts at stage boundaries, memory within a
+stage.* One number is missing before this becomes `accepted`: the wall-clock and byte
+cost at those boundaries, from the tracer bullet described in the spike note.
+
+A scoping constraint that comes with it: the orchestrator is **bought, not built**
+(Snakemake, DVC or make). The engineering contribution of this thesis is the domain
+system — unified catalogue with provenance, selection functions behind one interface,
+joint uncertainty propagation — not workflow middleware. See Q6 in the spike note.
+
 ## Open questions (the spike answers these)
 
 1. **sorcha** — is in-process invocation supported, or is the CLI the real path? How

@@ -45,6 +45,14 @@ a test to relax.
 - **Cross-source identity.** The same object may appear under different designations
   across sources, and identity resolution itself can encode later knowledge. Identity
   mapping is versioned along with the snapshot.
+- **Prior drift in simulation artifacts.** Not a source-snapshot trap, but the same
+  failure mode one stage downstream: a stored set of (parameters, simulated
+  observations) pairs is valid **only for the prior those parameters were drawn from**.
+  Changing the prior — even slightly, even for a good reason — silently invalidates the
+  entire campaign artifact, and nothing in the data itself reveals it. The prior
+  specification (distribution, hyperparameters, version) is a required field of the
+  campaign manifest, and a training run must refuse to consume simulations whose prior
+  spec does not match the one it declares.
 
 ## Verification
 
