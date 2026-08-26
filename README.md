@@ -19,11 +19,18 @@ together — and how much statistical power that buys over current methods.
 
 ## Status
 
-**Phase 1 of 6 — Verification and baseline.** Nothing is implemented yet: the repo
-was bootstrapped on 2026-08-24. The architectural style is still an open decision
-(see [ADR-0001](docs/architecture/decisions/0001-architecture-style.md), status
-`proposed`), pending the reconnaissance spike that is milestone 1 of the
-[roadmap](docs/product/roadmap.md).
+**Phase 1 of 6 — Verification and baseline.** The repository was bootstrapped on
+2026-08-24. What exists so far is the reconnaissance spike that is milestone 1 of the
+[roadmap](docs/product/roadmap.md): a tracer bullet that walks the whole chain at toy
+scale — against the real Rubin survey simulator on a workstation, and against a fake one
+in continuous integration — measuring wall-clock and bytes at every stage boundary. How
+those numbers are produced, and what is held constant to produce them, is written down
+before they are used: [measurement protocol](docs/architecture/spike-sp1-measurement-protocol.md).
+
+None of the five capabilities described below is implemented yet; the spike exercises
+their shape, not their content. The architectural style remains an open decision — see
+[ADR-0001](docs/architecture/decisions/0001-architecture-style.md), status `proposed` —
+until the measurements are in.
 
 ## What it will do
 
@@ -66,6 +73,7 @@ Canonical source: personal vault ›
 | [Requirements](docs/requirements/requirements.md) | Functional and non-functional requirements |
 | [Architecture](docs/architecture/overview.md) | System overview and C4 levels 1–2 |
 | [ADRs](docs/architecture/decisions/) | Technical decisions and their trade-offs |
+| [SP-1 spike](docs/architecture/spike-sp1-integration-surface.md) · [design](docs/architecture/spike-sp1-step2-design.md) · [protocol](docs/architecture/spike-sp1-measurement-protocol.md) | What was measured about the external tools, and how |
 | [Data provenance](docs/data/provenance.md) | Snapshots, temporal cuts, leakage control |
 | [Testing strategy](docs/quality/testing-strategy.md) · [DoD](docs/quality/definition-of-done.md) | Quality gates |
 
