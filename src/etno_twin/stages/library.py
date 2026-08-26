@@ -21,6 +21,13 @@ with ``N_eff`` Kish's effective sample size, ``(Σw)² / Σw²`` — stated expl
 `etno_twin.kernel.stats` and again here, because "effective sample size" names several
 different estimators in the literature and the ADR will cite this one.
 
+**``N_obs`` is not a single number here.** The threshold moves with the size of the
+observed catalogue the inference would be applied to, and fixing one value would turn a
+published criterion into an arbitrary verdict. The effective sample size is reported raw,
+and the criterion is evaluated against every catalogue size the configuration declares —
+each with its provenance — so the reader can see where the answer changes rather than
+being handed one.
+
 What the stage does: take one library, walk a ladder of parameter values at increasing
 distance from the library's reference, and record for each rung the effective sample
 size, the fraction of the library the target parameters exclude outright, and the
@@ -71,6 +78,27 @@ def _reference_wall_clock(campaign_manifest: Path) -> float:
     return float(payload["measurements"]["process"]["wall_seconds"])
 
 
+def _criterion_table(config: ExperimentConfig, n_eff: float) -> list[dict[str, Any]]:
+    """Whether the criterion holds, for every declared size of observed catalogue.
+
+    The threshold is ``4 · N_obs``, so the verdict moves with the sample the inference
+    would be applied to. Fixing one ``N_obs`` would turn a published criterion into an
+    arbitrary answer — large enough and a library that serves the catalogue which actually
+    exists is declared unusable. Reporting the whole table, next to the raw effective
+    sample size, leaves the reader able to see exactly where the answer changes.
+    """
+    factor = config.library.neff_criterion_factor
+    return [
+        {
+            "n_obs": scenario.n_obs,
+            "provenance": scenario.provenance,
+            "threshold": factor * scenario.n_obs,
+            "met": neff_criterion_met(n_eff, scenario.n_obs, factor),
+        }
+        for scenario in config.library.n_obs_scenarios
+    ]
+
+
 def run(
     config: ExperimentConfig,
     library_population_dir: Path,
@@ -93,7 +121,6 @@ def run(
     simulation_seconds = _reference_wall_clock(campaign_manifest)
 
     reference_theta = dict(config.library.reference)
-    n_obs = config.library.n_obs
     factor = config.library.neff_criterion_factor
 
     schema = DATASET_PAIRS.extended_with(
@@ -135,11 +162,9 @@ def run(
                 "n_eff_detected": n_eff_detected,
                 "n_eff_criterion": {
                     "reported_against": "n_eff_detected",
-                    "n_obs": n_obs,
                     "factor": factor,
-                    "threshold": factor * n_obs,
-                    "met": neff_criterion_met(n_eff_detected, n_obs, factor),
                     "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+                    "scenarios": _criterion_table(config, n_eff_detected),
                 },
                 "rejected_out_of_support": {
                     "count": weight_set.n_rejected,
@@ -201,7 +226,7 @@ def run(
             "boundary": "reweighted-library viability",
             "n_eff_formula": "kish: (sum w)^2 / sum w^2",
             "criterion": f"n_eff > {factor} * n_obs (Farr 2019, arXiv:1904.10879)",
-            "n_obs": n_obs,
+            "n_obs_scenarios": [s.as_dict() for s in config.library.n_obs_scenarios],
             "library_size": len(objects),
             "n_detected_in_library": len(detected_ids),
             "simulation_wall_seconds": simulation_seconds,

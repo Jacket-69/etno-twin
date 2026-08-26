@@ -78,9 +78,23 @@ density_estimator = "maf"
 
 [library]
 n_objects = 10
-n_obs = 3
 theta_ladder_scale = [0.0, 0.25, 0.5, 0.75, 1.0]
 neff_criterion_factor = 4.0
+
+# The criterion N_eff > 4 * N_obs moves with the size of the observed catalogue the
+# inference would be applied to, so it is evaluated against several declared sizes rather
+# than one chosen by hand. The effective sample size itself is reported raw alongside.
+[[library.n_obs_scenarios]]
+n_obs = 14
+provenance = "Napier et al. 2021 — the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo"
+
+[[library.n_obs_scenarios]]
+n_obs = 40
+provenance = "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys"
+
+[[library.n_obs_scenarios]]
+n_obs = 100
+provenance = "Prospective scenario: a Rubin-era catalogue after the survey has been discovering"
 
 [library.reference]
 size_slope_alpha = 0.6

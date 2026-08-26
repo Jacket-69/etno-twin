@@ -65,7 +65,7 @@ jobs:
           campaign = payload["boundaries"]["campaign"]
           assert campaign["binding"] == "fake"
           assert campaign["cost_model"]["points"], "no timing points were recorded"
-          assert all(run["base_seed"] > 0 for run in campaign["seeds_recovered"]), (
+          assert campaign["seeds_recovered"]["all_recovered"], (
               "a run reached the manifest without its seed"
           )
           assert payload["boundaries"]["library"], "the reweighted-library ladder is missing"

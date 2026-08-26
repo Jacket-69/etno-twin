@@ -162,6 +162,57 @@ def _peak_rss(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+EXAMPLE_LIMIT = 10
+"""How many individual records a summary quotes before it starts counting instead.
+
+An experiment of ten thousand draws has ten thousand seeds and twenty thousand manifests.
+Enumerating them turns the artifact the ADR cites into several megabytes of paths, and the
+per-run detail is already durable in the manifests themselves. The summary therefore
+reports the count, the property that must hold across all of them, and a handful of
+examples.
+"""
+
+
+def _seeds_recovered(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    """That every run recorded its seed, how many did, and a few of them.
+
+    The claim that matters at this level is *all of them* — a run whose seed was not
+    recovered never reaches a manifest, because the campaign stage raises. The individual
+    values live in the per-run manifests.
+    """
+    records = [
+        {
+            "label": run["parameters"]["label"],
+            "base_seed": run["seeds"]["simulator"]["base"],
+            "source": run["seeds"]["recovered_from"],
+        }
+        for run in runs
+    ]
+    return {
+        "n_runs": len(records),
+        "all_recovered": all(int(record["base_seed"]) > 0 for record in records),
+        "distinct_seeds": len({record["base_seed"] for record in records}),
+        "examples": records[:EXAMPLE_LIMIT],
+    }
+
+
+def _population_section(entries: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    """The population boundary, aggregated rather than enumerated."""
+    measurements = [entry["measurements"] for entry in entries]
+    return {
+        "boundary": "population -> simulator inputs",
+        "n_runs": len(measurements),
+        "total_objects": sum(int(item["n_objects"]) for item in measurements),
+        "median_generation_seconds": statistics.median(
+            float(item["generation"]["wall_seconds"]) for item in measurements
+        ),
+        "total_bytes": sum(int(item["bytes"]["total_bytes"]) for item in measurements),
+        "median_bytes_per_object": statistics.median(
+            float(item["bytes_per_object"]) for item in measurements
+        ),
+    }
+
+
 def _campaign_section(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
     sweep = [run for run in runs if str(run["parameters"]["label"]).startswith("sweep")]
     draws = [run for run in runs if str(run["parameters"]["label"]).startswith("draw")]
@@ -174,14 +225,7 @@ def _campaign_section(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
         "binding": runs[0]["parameters"]["binding"] if runs else None,
         "n_runs": len(runs),
         "cost_model": fit_cost_model(timing_source),
-        "seeds_recovered": [
-            {
-                "label": run["parameters"]["label"],
-                "base_seed": run["seeds"]["simulator"]["base"],
-                "source": run["seeds"]["recovered_from"],
-            }
-            for run in runs
-        ],
+        "seeds_recovered": _seeds_recovered(runs),
         "peak_rss_bytes": _peak_rss(runs),
     }
     if efficiencies:
@@ -215,7 +259,9 @@ def run(config: ExperimentConfig, experiment_dir: Path) -> dict[str, Path]:
     by_stage = _collect(experiment_dir)
     boundaries: dict[str, Any] = {}
 
-    for stage in ("population", "dataset", "library", "training"):
+    if by_stage.get("population"):
+        boundaries["population"] = _population_section(by_stage["population"])
+    for stage in ("dataset", "library", "training"):
         entries = by_stage.get(stage, [])
         if entries:
             boundaries[stage] = [entry["measurements"] for entry in entries]
@@ -233,9 +279,14 @@ def run(config: ExperimentConfig, experiment_dir: Path) -> dict[str, Path]:
             if entry.get("external_data")
         ],
         "boundaries": boundaries,
-        "manifests": [
-            entry["_manifest_path"] for entries in by_stage.values() for entry in entries
-        ],
+        "manifests": {
+            "root": str(experiment_dir),
+            "n_manifests": sum(len(entries) for entries in by_stage.values()),
+            "by_stage": {stage: len(entries) for stage, entries in sorted(by_stage.items())},
+            "examples": [
+                entry["_manifest_path"] for entries in by_stage.values() for entry in entries
+            ][:EXAMPLE_LIMIT],
+        },
     }
     output = experiment_dir / MEASUREMENTS_FILE
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

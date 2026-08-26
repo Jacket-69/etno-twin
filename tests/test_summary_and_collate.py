@@ -193,3 +193,69 @@ def test_a_campaign_of_only_short_runs_reports_no_memory_figure() -> None:
     summary = _peak_rss(runs)
     assert not summary["available"]
     assert "underestimates" in summary["reason"]
+
+
+def test_the_criterion_table_reports_every_declared_scenario(
+    fake_experiment: ExperimentConfig,
+) -> None:
+    from etno_twin.stages.library import _criterion_table
+
+    table = _criterion_table(fake_experiment, n_eff=200.0)
+    assert [row["n_obs"] for row in table] == [
+        s.n_obs for s in fake_experiment.library.n_obs_scenarios
+    ]
+    assert all(row["provenance"] for row in table)
+
+
+def test_the_verdict_changes_with_the_catalogue_size(
+    fake_experiment: ExperimentConfig,
+) -> None:
+    """The whole reason the criterion is not evaluated against one number."""
+    from etno_twin.stages.library import _criterion_table
+
+    # 4 * 14 = 56 < 100 < 4 * 40 = 160.
+    table = {row["n_obs"]: row["met"] for row in _criterion_table(fake_experiment, n_eff=100.0)}
+    assert table[14] is True
+    assert table[40] is False
+    assert table[100] is False
+
+
+def test_the_binding_of_the_pairs_is_stated_in_words() -> None:
+    """A training figure a reader could take for a real-simulator figure is a trap."""
+    from etno_twin.stages.training import _binding_note
+
+    fake = _binding_note("fake")
+    assert "fake binding" in fake
+    assert "Nothing here is a measurement of the survey simulator" in fake
+    assert "real survey simulator" in _binding_note("sorcha")
+    assert "unrecognised" in _binding_note("something-else")
+
+
+def test_a_large_campaign_is_summarised_rather_than_enumerated() -> None:
+    """Ten thousand seeds in the artifact the ADR cites would be megabytes of noise."""
+    from etno_twin.stages.collate import EXAMPLE_LIMIT, _seeds_recovered
+
+    runs = [
+        {
+            "parameters": {"label": f"draw-{index:05d}"},
+            "seeds": {"simulator": {"base": 1000 + index}, "recovered_from": "log"},
+        }
+        for index in range(5000)
+    ]
+    summary = _seeds_recovered(runs)
+    assert summary["n_runs"] == 5000
+    assert summary["all_recovered"] is True
+    assert summary["distinct_seeds"] == 5000
+    assert len(summary["examples"]) == EXAMPLE_LIMIT
+
+
+def test_a_run_missing_its_seed_breaks_the_all_recovered_claim() -> None:
+    from etno_twin.stages.collate import _seeds_recovered
+
+    runs = [
+        {
+            "parameters": {"label": "draw-0000"},
+            "seeds": {"simulator": {"base": 0}, "recovered_from": "log"},
+        }
+    ]
+    assert _seeds_recovered(runs)["all_recovered"] is False

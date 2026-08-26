@@ -158,20 +158,36 @@ rule campaign:
         " {params.warmup}"
 
 
+rule draw_index:
+    """Write the list of draw directories the dataset stage consumes.
+
+    An experiment that composes ten thousand draws has ten thousand paths, which do not
+    belong on a command line. Writing them to a file makes the list an artifact like any
+    other, and keeps the stage's invocation the same size whatever the experiment.
+    """
+    input:
+        detections=expand(OUT / "campaign" / "{label}" / "detections.csv", label=DRAW_LABELS),
+    output:
+        index=OUT / "dataset" / "draws.txt",
+    run:
+        Path(output.index).parent.mkdir(parents=True, exist_ok=True)
+        Path(output.index).write_text(
+            "".join(f"{OUT}/campaign/{label}\n" for label in DRAW_LABELS), encoding="utf-8"
+        )
+
+
 rule dataset:
     input:
         config=EXPERIMENT,
-        detections=expand(OUT / "campaign" / "{label}" / "detections.csv", label=DRAW_LABELS),
+        index=OUT / "dataset" / "draws.txt",
     output:
         pairs=OUT / "dataset" / "pairs.csv",
         manifest=OUT / "dataset" / "dataset.manifest.json",
-    params:
-        draws=" ".join(f"--draw-dir {OUT}/campaign/{label}" for label in DRAW_LABELS),
     shell:
         "{PYTHON} -m etno_twin.stages.dataset"
         " --config {input.config}"
         " --outdir {OUT}/dataset"
-        " {params.draws}"
+        " --draw-dirs-from {input.index}"
 
 
 rule library:

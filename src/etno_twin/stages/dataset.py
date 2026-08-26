@@ -90,6 +90,9 @@ def run(
         outputs=[fingerprint(pairs, "pairs")],
         parameters={
             "n_pairs": len(rows),
+            # Which simulator produced these pairs travels with them. A training run
+            # measured on one binding must not be readable as if it came from the other.
+            "binding": config.campaign.binding,
             "theta_columns": list(theta_columns(config.prior)),
             "x_columns": list(summary_columns(config)),
             "summary": config.dataset.as_dict(),
@@ -123,14 +126,32 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="etno-twin-dataset", description=__doc__)
     parser.add_argument("--config", required=True, type=Path)
     parser.add_argument("--outdir", required=True, type=Path)
-    parser.add_argument("--draw-dir", dest="draw_dirs", action="append", required=True, type=Path)
+    parser.add_argument("--draw-dir", dest="draw_dirs", action="append", default=[], type=Path)
+    parser.add_argument(
+        "--draw-dirs-from",
+        type=Path,
+        default=None,
+        help=(
+            "File listing one draw directory per line. The budget experiment composes ten "
+            "thousand draws, whose paths do not belong on a command line."
+        ),
+    )
     parser.add_argument("--stem", default="detections")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    run(load_experiment(args.config), args.draw_dirs, args.outdir, stem=args.stem)
+    draw_dirs = list(args.draw_dirs)
+    if args.draw_dirs_from is not None:
+        draw_dirs.extend(
+            Path(line.strip())
+            for line in args.draw_dirs_from.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        )
+    if not draw_dirs:
+        raise SystemExit("no draws given: pass --draw-dir or --draw-dirs-from")
+    run(load_experiment(args.config), draw_dirs, args.outdir, stem=args.stem)
     return 0
 
 

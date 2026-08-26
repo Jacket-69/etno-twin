@@ -99,6 +99,27 @@ def _coverage_from_ranks(ranks: torch.Tensor, num_posterior_samples: int) -> dic
     return coverage
 
 
+def _binding_note(binding: str) -> str:
+    """Say which simulator produced the pairs, and what that does and does not mean.
+
+    Carried in the manifest rather than left to a reader's assumption. A training figure
+    that someone could take for a real-simulator figure is a trap, and this is the
+    cheapest place to disarm it.
+    """
+    if binding == "fake":
+        return (
+            "These pairs were produced by the fake binding. Wall-clock of training, bytes "
+            "of the persisted network and calibration do not depend on which simulator "
+            "produced the pairs — the network sees a table of parameters and summary "
+            "vectors and cannot know what wrote them — so the measurement keeps its "
+            "meaning while its cost falls from tens of hours of real simulator time to "
+            "minutes. Nothing here is a measurement of the survey simulator."
+        )
+    if binding == "sorcha":
+        return "These pairs were produced by the real survey simulator."
+    return f"Pairs produced by an unrecognised binding: {binding!r}."
+
+
 def run(
     config: ExperimentConfig,
     pairs_path: Path,
@@ -117,6 +138,7 @@ def run(
             "training run declares; the stored pairs are not valid for it"
         )
 
+    pairs_binding = str(dataset["parameters"].get("binding", "unrecorded"))
     theta_columns = list(dataset["parameters"]["theta_columns"])
     x_columns = list(dataset["parameters"]["x_columns"])
     thetas, xs = _load_pairs(pairs_path, theta_columns, x_columns)
@@ -200,6 +222,8 @@ def run(
             "n_simulations_used": train_count,
             "n_pairs_available": available,
             "master_seed": master_seed,
+            "pairs_binding": pairs_binding,
+            "pairs_binding_note": _binding_note(pairs_binding),
             "density_estimator": config.training.density_estimator,
             "max_epochs": config.training.max_epochs,
             "theta_columns": theta_columns,
@@ -220,6 +244,8 @@ def run(
             "n_simulations_requested": budget,
             "n_simulations_used": train_count,
             "master_seed": master_seed,
+            "pairs_binding": pairs_binding,
+            "pairs_binding_note": _binding_note(pairs_binding),
             "training": training_watch.as_dict(),
             "calibration": sbc_watch.as_dict(),
             "bytes": ledger.as_dict(),

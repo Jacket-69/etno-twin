@@ -1,0 +1,122 @@
+# SP-1 — the training budget: 10³ versus 10⁴ simulations, under two master seeds.
+#
+#     uv run snakemake --cores 12 --config experiment=experiments/sp1-training-budget.toml
+#
+# **This experiment runs against the fake binding, and that is deliberate.** State it
+# wherever its numbers are quoted, because a training figure a reader could take for a
+# sorcha figure is a trap.
+#
+# What this frontier measures is wall-clock of training against simulation budget, bytes
+# of the persisted network, and calibration ranks and coverage. **None of the three
+# depends on which simulator produced the pairs.** The network sees a table of parameters
+# and summary vectors; it does not know and cannot know what wrote them. So the number
+# keeps its meaning, and the cost of obtaining it falls from about eighty hours of real
+# simulator time to minutes.
+#
+# The alternative that was considered and rejected: composing the pairs from the
+# reweighted library. It would be cheaper still and it would ruin the measurement, because
+# it folds two questions into one — "is the reweighting valid?" and "what does training
+# cost?" — and contaminates precisely the number the ladder in `sp1-sweep.toml` exists to
+# produce. They are two experiments, not one.
+#
+# What this experiment does **not** measure: anything about the survey simulator. The
+# fixed/marginal cost split and the reweighted-library ladder are measured against sorcha,
+# in `sp1-sweep.toml`.
+#
+# Note the invocation: no `bench_slot`, and as many cores as there are. Nothing here times
+# a simulator run, so serialising them would only make the experiment slower.
+
+[experiment]
+name = "sp1-training-budget"
+description = "Neural posterior estimation cost and calibration at 10³ and 10⁴ simulations."
+master_seed = 20260827
+outdir = "runs/sp1-training-budget"
+
+[population]
+model = "toy-parametric"
+n_objects = 10
+semi_major_axis_au = [50.0, 150.0]
+perihelion_au = [32.0, 45.0]
+absolute_magnitude_r = [4.0, 7.0]
+inclination_truncation_scale = 3.0
+epoch_mjd_tdb = 60200.0
+phase_slope_g = 0.15
+
+[population.colours]
+"u-r" = 2.13
+"g-r" = 0.65
+"i-r" = -0.19
+"z-r" = 0.14
+"y-r" = -0.14
+
+[prior.size_slope_alpha]
+distribution = "uniform"
+low = 0.2
+high = 1.0
+
+[prior.inclination_width_deg]
+distribution = "uniform"
+low = 5.0
+high = 40.0
+
+[campaign]
+binding = "fake"
+# Ten thousand for the larger budget, plus the calibration hold-out. Both budgets are
+# trained from this one dataset, so the pairs are drawn once.
+n_draws = 10200
+sweep_objects = [10]
+sweep_repetitions = 1
+warmup_runs = 1
+
+[campaign.sorcha]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_db = "auto"
+ephemeris_cache = "~/.cache/sorcha"
+
+[campaign.fake]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_table = "fixtures/pointing/rubin-baseline-1yr-subsample.csv"
+field_probability = 0.45
+
+[dataset]
+magnitude_bins = [21.0, 22.5, 24.0]
+distance_bins_au = [50.0, 80.0, 110.0]
+
+# The measurement. Two budgets an order of magnitude apart, two master seeds each: four
+# trainings, and the delta between seeds is what turns "statistically replicable" from a
+# promise into a number.
+[training]
+n_simulations = [1000, 10000]
+master_seeds = [11, 23]
+sbc_evaluations = 200
+sbc_posterior_samples = 1000
+max_epochs = 200
+density_estimator = "maf"
+
+[library]
+# Present because every experiment declares one, and exercised at the smallest useful
+# size. The reweighted-library measurement belongs to `sp1-sweep.toml`, against the real
+# simulator; nothing here should be read as bearing on it.
+n_objects = 100
+theta_ladder_scale = [0.0, 0.5, 1.0]
+neff_criterion_factor = 4.0
+
+[[library.n_obs_scenarios]]
+n_obs = 14
+provenance = "Napier et al. 2021 — the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo"
+
+[[library.n_obs_scenarios]]
+n_obs = 40
+provenance = "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys"
+
+[[library.n_obs_scenarios]]
+n_obs = 100
+provenance = "Prospective scenario: a Rubin-era catalogue after the survey has been discovering"
+
+[library.reference]
+size_slope_alpha = 0.6
+inclination_width_deg = 35.0
+
+[library.ladder_direction]
+size_slope_alpha = 1.0
+inclination_width_deg = -1.0

@@ -148,3 +148,56 @@ def test_a_prior_parameter_missing_from_the_ladder_is_refused(
     broken.write_text(text, encoding="utf-8")
     with pytest.raises(ConfigError, match="omits prior parameters"):
         load_experiment(broken)
+
+
+def test_the_criterion_is_evaluated_against_several_declared_catalogue_sizes(
+    fake_experiment: ExperimentConfig,
+) -> None:
+    """Fixing one N_obs would turn a published threshold into an arbitrary verdict."""
+    scenarios = fake_experiment.library.n_obs_scenarios
+    assert len(scenarios) >= 2
+    assert [s.n_obs for s in scenarios] == sorted(s.n_obs for s in scenarios)
+    assert all(s.provenance.strip() for s in scenarios), (
+        "a scenario without provenance is a number chosen by hand"
+    )
+
+
+def test_the_reference_analysis_scenario_is_present(fake_experiment: ExperimentConfig) -> None:
+    """The sample the reference analysis actually measured with anchors the smallest rung."""
+    smallest = fake_experiment.library.n_obs_scenarios[0]
+    assert smallest.n_obs == 14
+    assert "Napier" in smallest.provenance
+
+
+def test_a_scenario_without_provenance_is_refused(
+    fake_experiment: ExperimentConfig, tmp_path: Path
+) -> None:
+    text = fake_experiment.path.read_text(encoding="utf-8").replace(
+        "[[library.n_obs_scenarios]]\nn_obs = 14\nprovenance = ",
+        "[[library.n_obs_scenarios]]\nn_obs = 14\nunlabelled = ",
+        1,
+    )
+    broken = tmp_path / "broken.toml"
+    broken.write_text(text, encoding="utf-8")
+    with pytest.raises(ConfigError, match="provenance"):
+        load_experiment(broken)
+
+
+def test_the_budget_experiment_runs_against_the_fake_binding(repo_root: Path) -> None:
+    """The 10³-versus-10⁴ comparison is measured on the fake binding, by decision."""
+    budget = load_experiment(repo_root / "experiments" / "sp1-training-budget.toml")
+    assert budget.campaign.binding == "fake"
+    assert budget.training.n_simulations == (1000, 10000)
+    assert len(budget.training.master_seeds) == 2
+    assert budget.campaign.n_draws >= max(budget.training.n_simulations)
+
+
+def test_the_sweep_experiment_runs_against_the_real_simulator(repo_root: Path) -> None:
+    sweep = load_experiment(repo_root / "experiments" / "sp1-sweep.toml")
+    assert sweep.campaign.binding == "sorcha"
+    assert sweep.campaign.sweep_objects == (10, 100, 1000)
+    assert sweep.campaign.sweep_repetitions >= 3
+    assert sweep.library.n_objects == max(sweep.campaign.sweep_objects), (
+        "the library is built at the largest size of the sweep, so its detected subset is "
+        "large enough for the criterion to bite"
+    )

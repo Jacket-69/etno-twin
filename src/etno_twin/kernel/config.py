@@ -223,6 +223,27 @@ class TrainingConfig:
 
 
 @dataclass(frozen=True)
+class ObservedSampleScenario:
+    """One size of observed catalogue the reweighting criterion is evaluated against.
+
+    The criterion ``N_eff > 4 · N_obs`` needs an ``N_obs``, and picking a single one turns
+    a published threshold into an arbitrary verdict: too large a value declares a library
+    unusable that would serve the sample which actually exists, too small a value flatters
+    it. So the criterion is evaluated against several declared sizes and the effective
+    sample size itself is reported raw, leaving the reader to see where the answer changes.
+
+    ``provenance`` travels into the manifest with the number, because a scenario nobody
+    can trace back is a number chosen by hand.
+    """
+
+    n_obs: int
+    provenance: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"n_obs": self.n_obs, "provenance": self.provenance}
+
+
+@dataclass(frozen=True)
 class LibraryConfig:
     """The reweighted-library measurement: one library, a ladder of parameter distances.
 
@@ -233,7 +254,7 @@ class LibraryConfig:
     """
 
     n_objects: int
-    n_obs: int
+    n_obs_scenarios: tuple[ObservedSampleScenario, ...]
     reference: dict[str, float]
     ladder_direction: dict[str, float]
     theta_ladder_scale: tuple[float, ...]
@@ -242,7 +263,7 @@ class LibraryConfig:
     def as_dict(self) -> dict[str, Any]:
         return {
             "n_objects": self.n_objects,
-            "n_obs": self.n_obs,
+            "n_obs_scenarios": [scenario.as_dict() for scenario in self.n_obs_scenarios],
             "reference": dict(self.reference),
             "ladder_direction": dict(self.ladder_direction),
             "theta_ladder_scale": list(self.theta_ladder_scale),
@@ -281,6 +302,23 @@ class ExperimentConfig:
 
 def _resolve(value: str) -> Path:
     return Path(value).expanduser()
+
+
+def _scenarios(library: Mapping[str, Any]) -> tuple[ObservedSampleScenario, ...]:
+    entries = _require(library, "n_obs_scenarios", "library")
+    if not isinstance(entries, list) or not entries:
+        raise ConfigError("[[library.n_obs_scenarios]] must declare at least one scenario")
+    scenarios: list[ObservedSampleScenario] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ConfigError("[[library.n_obs_scenarios]] entries must be tables")
+        scenarios.append(
+            ObservedSampleScenario(
+                n_obs=int(_require(entry, "n_obs", "library.n_obs_scenarios")),
+                provenance=str(_require(entry, "provenance", "library.n_obs_scenarios")),
+            )
+        )
+    return tuple(sorted(scenarios, key=lambda item: item.n_obs))
 
 
 def load_experiment(path: Path) -> ExperimentConfig:
@@ -373,7 +411,7 @@ def load_experiment(path: Path) -> ExperimentConfig:
         ),
         library=LibraryConfig(
             n_objects=int(_require(library, "n_objects", "library")),
-            n_obs=int(_require(library, "n_obs", "library")),
+            n_obs_scenarios=_scenarios(library),
             reference={k: float(v) for k, v in _section(library, "reference").items()},
             ladder_direction={
                 k: float(v) for k, v in _section(library, "ladder_direction").items()

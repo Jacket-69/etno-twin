@@ -222,6 +222,26 @@ the wall-clock of composing the rung, and the wall-clock of the simulation that 
 library — read from that run's manifest rather than re-run, so the comparison does not
 itself pay for a simulation.
 
+### `N_obs` is a table, not a number
+
+The threshold is `4 · N_obs`, so the verdict moves with the size of the observed catalogue
+the inference would be applied to. Choosing one value would turn a published criterion into
+an arbitrary answer: set it high enough and a library that would serve the catalogue which
+actually exists is declared unusable.
+
+So the effective sample size is reported **raw**, and the criterion is evaluated against
+every catalogue size the configuration declares, each carrying its provenance into the
+manifest:
+
+| `N_obs` | Threshold | Where the number comes from |
+|---|---|---|
+| 14 | 56 | Napier et al. 2021 — the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo |
+| 40 | 160 | The order of magnitude of the extreme trans-Neptunian sample assembled across published surveys |
+| 100 | 400 | Prospective: a Rubin-era catalogue after the survey has been discovering |
+
+A reader of the thesis then sees where the answer changes rather than being handed one, and
+the ADR does not hang on a number chosen by hand.
+
 ### Why the rejected fraction is not a column of zeros
 
 The toy population model truncates its inclination distribution at a configured multiple of
@@ -288,6 +308,53 @@ Three things are visibly starved at smoke scale and are the sweep's job, not the
   is not a handful of objects.
 - Simulation-based calibration over a few evaluations is a smoke test of the plumbing. Its
   numbers are not calibration evidence and must not be read as any.
+
+## The training budget is measured on the fake binding, deliberately
+
+The step-2 design asks for wall-clock at 10³ versus 10⁴ simulations. Ten thousand draws
+through the real survey simulator is on the order of eighty hours, so where those pairs
+come from is a decision rather than a detail. It was taken on 2026-08-25 and it is this:
+**`experiments/sp1-training-budget.toml` runs against the fake binding.**
+
+The reasoning, and it is the reason the number keeps its meaning: what this frontier
+measures is wall-clock of training against simulation budget, bytes of the persisted
+network, and calibration ranks and coverage. **None of the three depends on which simulator
+produced the pairs.** The network is handed a table of parameters and summary vectors; it
+does not know and cannot know what wrote them. The cost of obtaining the number falls from
+tens of hours to minutes, and nothing about the number changes.
+
+The alternative that was considered and rejected: composing the pairs by reweighting the
+library. Cheaper still, and it would ruin the measurement — it folds two questions into one,
+"is the reweighting valid?" and "what does training cost?", and contaminates precisely the
+number the ladder exists to produce. They are two experiments, not one.
+
+**This is stated in three places, on purpose.** The experiment configuration's header says
+it, the dataset manifest records which binding produced the pairs, and every training
+manifest carries `pairs_binding` together with a sentence explaining what it does and does
+not mean. A training figure that a reader could take for a real-simulator figure is a trap,
+and the cheapest place to disarm it is next to the number.
+
+Anything about the *simulator* — the fixed and marginal cost split, the reweighted-library
+ladder — is measured against sorcha, in `experiments/sp1-sweep.toml`. Nothing in the budget
+experiment bears on it.
+
+## Where the evidence lives
+
+Experiment output trees are regenerable and stay out of version control. The **collated
+summary** of each experiment — the one artifact ADR-0001 points at — is copied into
+`docs/architecture/evidence/sp1-step2/` and committed, because an ADR that cites a
+gitignored directory cites nothing:
+
+```bash
+uv run python scripts/publish_evidence.py runs/sp1-sweep
+```
+
+Detection catalogues, run logs, per-run manifests and trained networks are not copied. The
+summary carries their counts and the path they were produced under, which is what makes the
+claim checkable without putting hundreds of megabytes into a repository a preprint will
+cite. The summaries aggregate rather than enumerate for the same reason: an experiment of
+ten thousand draws states that every seed was recovered and how many were distinct, quotes
+a handful, and leaves the individual values in the per-run manifests.
 
 ## What the smoke actually produced, 2026-08-25
 
