@@ -1,0 +1,231 @@
+# Orchestration of the tracer bullet.
+#
+# The orchestrator is bought, not built: chaining pure file-to-file stages, resuming after
+# an interruption and regenerating only what changed are solved problems, and the
+# engineering contribution of this project is the domain system rather than workflow
+# middleware. This file is the half-day that answers whether Snakemake is the right
+# purchase.
+#
+# One experiment configuration file is the root of everything, passed on the command line
+# and read here with the same parser the stages use, so there is one description of an
+# experiment rather than one for the pipeline and a second for the workflow engine:
+#
+#     uv run snakemake --cores 1 --resources bench_slot=1 \
+#         --config experiment=experiments/smoke-fake.toml
+#
+# **--resources bench_slot=1 is not optional for a run whose numbers will be used.** Every
+# rule that invokes the survey simulator claims that resource, so simulator runs are
+# serialised even when Snakemake has more cores to play with. Two simulator processes
+# sharing a machine measure contention, not cost.
+
+import json
+import sys
+import tomllib
+from pathlib import Path
+
+PYTHON = sys.executable
+
+if "experiment" not in config:
+    raise WorkflowError(
+        "pass the experiment configuration file: "
+        "--config experiment=experiments/smoke-fake.toml"
+    )
+
+EXPERIMENT = Path(config["experiment"])
+SPEC = tomllib.loads(EXPERIMENT.read_text(encoding="utf-8"))
+
+OUT = Path(SPEC["experiment"]["outdir"])
+N_DRAWS = int(SPEC["campaign"]["n_draws"])
+SWEEP_OBJECTS = [int(n) for n in SPEC["campaign"]["sweep_objects"]]
+SWEEP_REPETITIONS = int(SPEC["campaign"]["sweep_repetitions"])
+WARMUP_RUNS = int(SPEC["campaign"]["warmup_runs"])
+LIBRARY_OBJECTS = int(SPEC["library"]["n_objects"])
+POPULATION_OBJECTS = int(SPEC["population"]["n_objects"])
+REFERENCE_THETA = dict(SPEC["library"]["reference"])
+BUDGETS = [int(n) for n in SPEC["training"]["n_simulations"]]
+MASTER_SEEDS = [int(s) for s in SPEC["training"]["master_seeds"]]
+
+DRAW_LABELS = [f"draw-{index:04d}" for index in range(N_DRAWS)]
+WARMUP_LABELS = [f"warmup-{index}" for index in range(WARMUP_RUNS)]
+SWEEP_LABELS = [
+    f"sweep-n{n}-rep{rep}" for n in SWEEP_OBJECTS for rep in range(SWEEP_REPETITIONS)
+]
+LIBRARY_LABEL = "library"
+ALL_LABELS = [*WARMUP_LABELS, *SWEEP_LABELS, *DRAW_LABELS, LIBRARY_LABEL]
+
+SNAPSHOT_MANIFEST = OUT / "snapshot" / "snapshot.manifest.json"
+WARMUP_MANIFESTS = [OUT / "campaign" / label / "campaign.manifest.json" for label in WARMUP_LABELS]
+
+
+def population_size(label):
+    """How many objects a labelled run simulates."""
+    if label.startswith("sweep-"):
+        return int(label.split("-")[1].removeprefix("n"))
+    if label.startswith("warmup-"):
+        return SWEEP_OBJECTS[0]
+    if label == LIBRARY_LABEL:
+        return LIBRARY_OBJECTS
+    return POPULATION_OBJECTS
+
+
+def population_theta(label):
+    """Population parameters for a labelled run, or an empty string to draw from the prior.
+
+    Only the draws vary their parameters. Timing runs and the library are pinned to the
+    reference parameters so that a difference in wall-clock across the ladder is a
+    difference in population size and nothing else.
+    """
+    if label.startswith("draw-"):
+        return ""
+    return f"--theta '{json.dumps(REFERENCE_THETA)}'"
+
+
+def warmup_dependency(label):
+    """Timed runs wait for the warm-up runs; the warm-up runs wait for nothing.
+
+    A real dependency rather than a scheduling hint: the first run of a session pays for
+    a cold page cache, and a measurement taken before that has been paid is a measurement
+    of the filesystem.
+    """
+    return [] if label.startswith("warmup-") else WARMUP_MANIFESTS
+
+
+wildcard_constraints:
+    label=r"[a-z0-9\-]+",
+    budget=r"\d+",
+    seed=r"\d+",
+
+
+rule all:
+    input:
+        OUT / "measurements.json",
+
+
+rule snapshot:
+    """Fingerprint the external data once, outside every timed region."""
+    input:
+        config=EXPERIMENT,
+    output:
+        manifest=SNAPSHOT_MANIFEST,
+    shell:
+        "{PYTHON} -m etno_twin.stages.snapshot"
+        " --config {input.config}"
+        " --outdir {OUT}/snapshot"
+
+
+rule population:
+    input:
+        config=EXPERIMENT,
+    output:
+        orbits=OUT / "campaign" / "{label}" / "orbits.csv",
+        physical=OUT / "campaign" / "{label}" / "physical-parameters.csv",
+        theta=OUT / "campaign" / "{label}" / "theta.json",
+        manifest=OUT / "campaign" / "{label}" / "population.manifest.json",
+    params:
+        n_objects=lambda wildcards: population_size(wildcards.label),
+        theta=lambda wildcards: population_theta(wildcards.label),
+    shell:
+        "{PYTHON} -m etno_twin.stages.population"
+        " --config {input.config}"
+        " --outdir {OUT}/campaign/{wildcards.label}"
+        " --label {wildcards.label}"
+        " --n-objects {params.n_objects}"
+        " {params.theta}"
+
+
+rule campaign:
+    input:
+        config=EXPERIMENT,
+        snapshot=SNAPSHOT_MANIFEST,
+        orbits=OUT / "campaign" / "{label}" / "orbits.csv",
+        physical=OUT / "campaign" / "{label}" / "physical-parameters.csv",
+        theta=OUT / "campaign" / "{label}" / "theta.json",
+        warmup=lambda wildcards: warmup_dependency(wildcards.label),
+    output:
+        detections=OUT / "campaign" / "{label}" / "detections.csv",
+        manifest=OUT / "campaign" / "{label}" / "campaign.manifest.json",
+    params:
+        warmup=lambda wildcards: "--warmup" if wildcards.label.startswith("warmup-") else "",
+    resources:
+        bench_slot=1,
+    shell:
+        "{PYTHON} -m etno_twin.stages.campaign"
+        " --config {input.config}"
+        " --population-dir {OUT}/campaign/{wildcards.label}"
+        " --outdir {OUT}/campaign/{wildcards.label}"
+        " --label {wildcards.label}"
+        " --snapshot-manifest {input.snapshot}"
+        " {params.warmup}"
+
+
+rule dataset:
+    input:
+        config=EXPERIMENT,
+        detections=expand(OUT / "campaign" / "{label}" / "detections.csv", label=DRAW_LABELS),
+    output:
+        pairs=OUT / "dataset" / "pairs.csv",
+        manifest=OUT / "dataset" / "dataset.manifest.json",
+    params:
+        draws=" ".join(f"--draw-dir {OUT}/campaign/{label}" for label in DRAW_LABELS),
+    shell:
+        "{PYTHON} -m etno_twin.stages.dataset"
+        " --config {input.config}"
+        " --outdir {OUT}/dataset"
+        " {params.draws}"
+
+
+rule library:
+    input:
+        config=EXPERIMENT,
+        detections=OUT / "campaign" / LIBRARY_LABEL / "detections.csv",
+        manifest=OUT / "campaign" / LIBRARY_LABEL / "campaign.manifest.json",
+    output:
+        ladder=OUT / "library" / "ladder.json",
+        composed=OUT / "library" / "composed-x.csv",
+        manifest=OUT / "library" / "library.manifest.json",
+    shell:
+        "{PYTHON} -m etno_twin.stages.library"
+        " --config {input.config}"
+        " --population-dir {OUT}/campaign/" + LIBRARY_LABEL +
+        " --campaign-dir {OUT}/campaign/" + LIBRARY_LABEL +
+        " --outdir {OUT}/library"
+
+
+rule training:
+    input:
+        config=EXPERIMENT,
+        pairs=OUT / "dataset" / "pairs.csv",
+        dataset_manifest=OUT / "dataset" / "dataset.manifest.json",
+    output:
+        posterior=OUT / "training" / "b{budget}-s{seed}" / "posterior.pt",
+        sbc=OUT / "training" / "b{budget}-s{seed}" / "sbc.json",
+        manifest=OUT / "training" / "b{budget}-s{seed}" / "training.manifest.json",
+    shell:
+        "{PYTHON} -m etno_twin.stages.training"
+        " --config {input.config}"
+        " --pairs {input.pairs}"
+        " --dataset-manifest {input.dataset_manifest}"
+        " --outdir {OUT}/training/b{wildcards.budget}-s{wildcards.seed}"
+        " --budget {wildcards.budget}"
+        " --master-seed {wildcards.seed}"
+
+
+rule collate:
+    input:
+        config=EXPERIMENT,
+        campaigns=expand(
+            OUT / "campaign" / "{label}" / "campaign.manifest.json", label=ALL_LABELS
+        ),
+        dataset=OUT / "dataset" / "dataset.manifest.json",
+        library=OUT / "library" / "library.manifest.json",
+        training=expand(
+            OUT / "training" / "b{budget}-s{seed}" / "training.manifest.json",
+            budget=BUDGETS,
+            seed=MASTER_SEEDS,
+        ),
+    output:
+        measurements=OUT / "measurements.json",
+    shell:
+        "{PYTHON} -m etno_twin.stages.collate"
+        " --config {input.config}"
+        " --experiment-dir {OUT}"

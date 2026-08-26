@@ -1,0 +1,102 @@
+# SP-1 — the sweep that closes ADR-0001. Workstation only; not run by the smoke.
+#
+# This is the configuration the cost measurement uses: the full ladder of population
+# sizes with repetitions, and a library large enough that the *detected* subset of it is
+# not a handful of objects. Everything about the population model, the prior and the
+# summary is identical to the smoke configurations; only the sizes differ.
+#
+#     uv run snakemake --cores 1 --resources bench_slot=1 \
+#         --config experiment=experiments/sp1-sweep.toml
+#
+# Expect hours, not minutes, and run it detached. At roughly 14 s of fixed cost plus
+# 1.5 s per object, the three repetitions at N = 1000 alone are over an hour.
+#
+# OPEN: the training budgets below are sized to the draws this configuration produces,
+# not to the 10³-versus-10⁴ comparison the step-2 design asks for. Ten thousand draws
+# through the real simulator is on the order of eighty hours, so that comparison needs a
+# decision about where its pairs come from — the fake binding, whose cost per pair is
+# milliseconds and on which training wall-clock, network bytes and calibration are all
+# equally measurable, or datasets composed from the reweighted library, which is the
+# thing the ladder below is measuring the validity of. Not decided here.
+
+[experiment]
+name = "sp1-sweep"
+description = "Fixed/marginal cost split and reweighted-library viability, real simulator."
+master_seed = 20260826
+outdir = "runs/sp1-sweep"
+
+[population]
+model = "toy-parametric"
+n_objects = 10
+semi_major_axis_au = [50.0, 150.0]
+perihelion_au = [32.0, 45.0]
+absolute_magnitude_r = [4.0, 7.0]
+inclination_truncation_scale = 3.0
+epoch_mjd_tdb = 60200.0
+phase_slope_g = 0.15
+
+[population.colours]
+"u-r" = 2.13
+"g-r" = 0.65
+"i-r" = -0.19
+"z-r" = 0.14
+"y-r" = -0.14
+
+[prior.size_slope_alpha]
+distribution = "uniform"
+low = 0.2
+high = 1.0
+
+[prior.inclination_width_deg]
+distribution = "uniform"
+low = 5.0
+high = 40.0
+
+[campaign]
+binding = "sorcha"
+n_draws = 64
+# The ladder the cost model is fitted over. Three sizes, so the fit has a residual worth
+# reading; three repetitions, so each point is a median rather than a single sample.
+sweep_objects = [10, 100, 1000]
+sweep_repetitions = 3
+warmup_runs = 1
+
+[campaign.sorcha]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_db = "auto"
+ephemeris_cache = "~/.cache/sorcha"
+
+[campaign.fake]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_table = "fixtures/pointing/rubin-baseline-1yr-subsample.csv"
+field_probability = 0.45
+
+[dataset]
+magnitude_bins = [21.0, 22.5, 24.0]
+distance_bins_au = [50.0, 80.0, 110.0]
+
+[training]
+n_simulations = [48]
+master_seeds = [11, 23]
+sbc_evaluations = 16
+sbc_posterior_samples = 200
+max_epochs = 100
+density_estimator = "maf"
+
+[library]
+# Built at the largest size of the sweep, as the step-2 design specifies.
+n_objects = 1000
+# The observed sample the criterion is measured against: the number of extreme
+# trans-Neptunian objects a real analysis has to work with is of this order, so the
+# threshold N_eff > 4 * N_obs is anchored to the problem rather than to the toy.
+n_obs = 40
+theta_ladder_scale = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
+neff_criterion_factor = 4.0
+
+[library.reference]
+size_slope_alpha = 0.6
+inclination_width_deg = 35.0
+
+[library.ladder_direction]
+size_slope_alpha = 1.0
+inclination_width_deg = -1.0
