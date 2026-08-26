@@ -66,8 +66,11 @@ Two traps here, both found by running it:
 - **Peak memory is polled across the process tree.** `ru_maxrss` for children is a
   high-water mark over every child the parent ever reaped, so it would silently report the
   largest *earlier* run. Instead the probe reads `VmHWM` — the kernel's own high-water
-  mark — for the child and every descendant, every 50 ms, and reports the largest single
-  process.
+  mark — for the child and every descendant, every 25 ms, and reports the largest single
+  process. Polling has a floor: a process that lives for a few tens of milliseconds is
+  sampled once or twice, before it has allocated anything, so the sample count is
+  recorded and a figure below a handful of samples is flagged unreliable and excluded
+  from the collation rather than reported as a measurement.
 
 ### 3 · Fixed cost is separated from marginal cost twice, by independent routes
 
