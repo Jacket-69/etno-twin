@@ -1,8 +1,9 @@
 ---
 adr: 0001
 title: Architectural style of the pipeline
-status: proposed
+status: accepted
 date: 2026-08-24
+decided: 2026-08-25
 deciders: Benjamín López Huidobro
 tags: [adr, arquitectura]
 ---
@@ -37,9 +38,29 @@ established.
 
 ## Decision
 
-*Pending.* To be decided once the reconnaissance spike (milestone 1 of the
-[roadmap](../../product/roadmap.md)) answers the open questions below. This ADR moves
-to `accepted` with the chosen option and its rationale at that point.
+**Artifacts at stage boundaries, memory within a stage.** Options A and C converged on
+this formulation once the spike located the seams; the tracer bullet then priced it, and
+the price is not close.
+
+Every stage is a pure `run(inputs, outdir, config)` that meets its neighbours only
+through files with a declared schema and a manifest. No stage imports another. The
+orchestrator is bought, not built.
+
+**The number that decided it.** Inter-boundary I/O is noise against the cost it
+separates. Composing a training dataset from detections takes **12 ms**; composing a
+reweighted library takes **0.52 s**; a single survey-simulator run costs **28.25 s before
+it looks at the first object**. Writing and reading artifacts costs under two per cent of
+the cheapest step it sits between. The main objection to the artifact discipline — I/O
+overhead — does not survive contact with the measurement.
+
+**The cost model, from the sweep at N = 10 / 100 / 1000 with three repetitions each:**
+
+```
+T(N) = 28.25 s + N × 0.0256 s        R² = 0.99994
+```
+
+The simulator is almost entirely fixed cost. That single fact reorganises the project's
+economics and is treated as a finding in its own right below.
 
 ## Alternatives considered
 
@@ -111,9 +132,94 @@ situation is known. See Q6 in the spike note.
 5. Does a public pipeline already combine a survey simulator with SBI? *(Also feeds
    the formal novelty verification, which is specific objective 1 of the thesis.)*
 
+## Evidence
+
+From `docs/architecture/evidence/sp1-step2/`, produced by the step-2 tracer bullet on the
+development workstation. 75 simulator runs, 75 seeds recovered, 75 distinct.
+
+| Boundary | Measurement |
+|---|---|
+| Population → simulator inputs | 276 bytes/object · 2.8 ms to generate |
+| Simulator run | fixed **28.25 s** · marginal **0.0256 s/object** · peak RSS **837 MB** |
+| Detections | 270 bytes/detection · 10 % of objects detected, 3.2 detections each |
+| Detections → (θ, x) pairs | raw **10.4 kB/pair** vs summarised **102 bytes/pair** — a ratio of 102 · composed in 12 ms |
+| Reweighted library | composition **0.52 s** against **54 s** to simulate — a speed-up of 104× to 121× |
+| Training and calibration | **5.2 s** at 10³ pairs, **19.8 s** at 10⁴ · persisted network **279.5 kB** · SBC over 200 evaluations |
+
+**Training is not the bottleneck, and the replication claim now has a number.** Twenty
+seconds of training against a simulator campaign measured in hours settles where the
+budget goes. Running each budget under two master seeds — the experiment the design
+insisted was free — shows central-50 coverage varying by 18 % relative between seeds at
+10³ pairs and by 3 % at 10⁴. Statistical replication is therefore a property of the
+simulation budget, not of the code, and the tolerance the thesis declares has to be
+stated against a budget. *(Pairs produced by the fake binding: training wall-clock,
+network bytes and calibration cannot depend on which simulator wrote the table. Nothing
+in that row measures the survey simulator.)*
+
+**Two estimators of fixed cost disagreed, and the disagreement was the point.** The
+sweep fit says 28.25 s; summing the log phases believed to be size-independent says
+13.61 s — a gap of 14.65 s. The gap is `ephemeris_generation`, classified as
+N-dependent and in fact almost entirely fixed: it works over the pointing grid, not over
+objects. The protocol was built to cross-check two estimators precisely so a
+misclassification like this would surface instead of propagating. Reporting a single
+estimator would have understated fixed cost by half.
+
+**Resumption was demonstrated, not argued.** The training-budget run was killed by an
+external `SIGTERM` at 96 % of 20,416 jobs and resumed from its artifacts without
+recomputing completed work. Milestone 6's gate was exercised by accident, three
+milestones early, and it is the strongest possible argument for this decision: the
+in-memory option would have lost nineteen thousand completed simulations.
+
 ## Consequences
 
-To be completed when the decision is made.
+**1 · The campaign stage should simulate large populations per run, not many small
+runs.** With marginal cost at 2.6 % of a second per object and fixed cost at 28 s, ten
+runs of 100 objects cost 285 s while one run of 1,000 costs 54 s. Any design that calls
+the simulator once per draw of θ is paying the fixed cost thousands of times over. This
+inverts the assumption behind the step-1 extrapolation of ~335 CPU-days, which is
+withdrawn: the same campaign is on the order of days, not months.
+
+**2 · The reweighted library is viable, and its limit is now measured.** Against the
+Farr criterion `N_eff > 4·N_obs`, with a 1,000-object library yielding 76 detections:
+
+| Distance along the prior | N_eff (detected) | Out-of-support rejected | n_obs = 14 | n_obs = 40 | n_obs = 100 |
+|---|---|---|---|---|---|
+| 0.0 | 76.0 | 0 % | ✓ | ✗ | ✗ |
+| 0.25 | 68.9 | 1.7 % | ✓ | ✗ | ✗ |
+| 0.50 | 58.8 | 5.1 % | ✓ | ✗ | ✗ |
+| 0.625 | 51.4 | 8.9 % | ✗ | ✗ | ✗ |
+| 1.0 | 27.1 | 28.9 % | ✗ | ✗ | ✗ |
+
+It holds to **half the prior range** for the sample the reference analysis actually
+measured, and breaks between 0.5 and 0.625. It never holds for the larger scenarios at
+this library size.
+
+**This is a sizing result, not a rejection** — and consequence 1 is what makes it
+cheap to act on. `N_eff` scales with the library's detected subset, and enlarging the
+library costs marginal time only: a 10⁵-object library is roughly 43 minutes, paid once.
+*(Extrapolated from the cost model, not measured.)* The campaign stage therefore splits
+into **library-build** and **composition**, with an artifact boundary between them.
+
+**3 · Store x raw at this scale.** The summarised table is 102× smaller, but the raw
+table is 10.4 kB per pair — 10 MB for a thousand draws. Summarising is a decision to
+defer, not to make now, and the raw artifact keeps every later choice open.
+
+**4 · 837 MB per simulator run is the number that sizes a campaign worker.** It is what
+decides how many run concurrently on one machine, and it is measured on the whole process
+tree — measuring through the dispatcher reported 15 MB, an empty interpreter.
+
+## Compliance / verification
+
+- **Four import-linter contracts**, enforced in CI: stages independent of one another ·
+  stages above bindings above kernel · **nothing in the package imports `sorcha`** ·
+  only the training stage imports the neural stack.
+- **The same DAG runs against a fake binding in CI** — no Fortran, no network, no 780 MB
+  ephemeris cache — and against the real simulator on the workstation. The two experiment
+  configurations differ in three lines, and a test asserts it.
+- Every boundary writes a manifest; measurements land in `measurements.json`, never in
+  prints.
+- Seed recovery is covered by a canary test over a committed real log, including
+  near-misses that must fail rather than parse.
 
 ## Compliance / verification
 
