@@ -1,0 +1,19 @@
+# Excerpt of a real sorcha run that detected nothing: the linking filter emptied the
+# chunk, so the run completed successfully and wrote no output file at all. The fake
+# binding writes an empty table in the same situation, which is the divergence the
+# adapter absorbs — see `explains_empty_output`.
+#
+# Only the lines the parsers read are kept; paths and the configuration copy are not
+# part of the fixture.
+2026-08-25 20:07:20,416 root         INFO     Sorcha Start (Main) 
+2026-08-25 20:07:20,417 sorcha.utilities.sorchaArguments INFO     the base rng seed is 979359599 
+2026-08-25 20:07:20,418 sorcha.sorcha INFO     Reading pointing database... 
+2026-08-25 20:07:20,833 sorcha.sorcha INFO     Pre-computing pointing information for ephemeris generation 
+2026-08-25 20:07:32,047 sorcha.sorcha INFO     Starting main Sorcha processing loop round 0 
+2026-08-25 20:07:32,059 sorcha.utilities.sorchaArguments INFO     Generating ASSIST+REBOUND simulations. 
+2026-08-25 20:07:33,078 sorcha.utilities.sorchaArguments INFO     Generating ephemeris... 
+2026-08-25 20:07:46,745 sorcha.utilities.sorchaArguments INFO     Ephemeris generated. 
+2026-08-25 20:07:46,762 sorcha.utilities.sorchaArguments INFO     the rng seed for the sorcha.modules.PPRandomizeMeasurements module is 2047874984 
+2026-08-25 20:07:46,777 sorcha.utilities.sorchaArguments INFO     the rng seed for the sorcha.modules.PPDropObservations module is 2111095082 
+2026-08-25 20:07:46,796 sorcha.sorcha INFO     No observations left in chunk. No output will be written for this chunk. 
+2026-08-25 20:07:46,796 sorcha.sorcha INFO     Sorcha process is completed. 

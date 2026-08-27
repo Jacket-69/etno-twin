@@ -8,6 +8,7 @@ build/
 dist/
 
 # Tooling
+.snakemake/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -24,6 +25,8 @@ data/raw/
 data/snapshots/
 data/campaigns/
 outputs/
+# Experiment output trees: regenerable from the configuration they name
+runs/
 *.db
 *.h5
 *.parquet

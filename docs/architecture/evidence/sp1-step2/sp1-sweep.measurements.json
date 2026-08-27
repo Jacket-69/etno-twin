@@ -1,0 +1,855 @@
+{
+  "schema": "etno-twin/measurements@1",
+  "generated_utc": "2026-08-26T01:29:43+00:00",
+  "experiment": {
+    "name": "sp1-sweep",
+    "config_path": "/home/jacket/Proyectos/Repositorios/UNIVERSIDAD/etno-twin/experiments/sp1-sweep.toml",
+    "config_sha256": "af1ed9d2fd0ccba4828f5752a5f2dcd0d94c79b62c67928b05376bbbd777e059",
+    "master_seed": 20260826,
+    "prior_fingerprint": "de94d187d557adae5dc473222fb16af9a9e590297c0e460797135f86c6d4c3db"
+  },
+  "binding": "sorcha",
+  "external_data": [
+    {
+      "binding": "sorcha",
+      "ephemeris": {
+        "path": "/home/jacket/.cache/sorcha",
+        "file_count": 11,
+        "total_bytes": 817775455,
+        "digest": "14d2f1c730fd170f4ede2235cfdab04bb7bd4a5abaa6e88e7ee3d046b6d97ba0",
+        "files": [
+          {
+            "name": "ObsCodes.json",
+            "bytes": 275825,
+            "sha256": "8bc8880aa44cec68b5c14822e418b7f94f4b28b4c2ca8e17ae65417ab759dfcd"
+          },
+          {
+            "name": "ObsCodes.json.gz",
+            "bytes": 77343,
+            "sha256": "5836800464175b654f964bd5ebd7a88e2008039cfe97a28e40cd20d18baa1bb5"
+          },
+          {
+            "name": "de440s.bsp",
+            "bytes": 32726016,
+            "sha256": "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"
+          },
+          {
+            "name": "earth_2026_260806_2126_predict.bpc",
+            "bytes": 19169280,
+            "sha256": "9f565ab5aaccd33afe54f3a1b20cb8b136636c31a0bd4c0986fac722b931c280"
+          },
+          {
+            "name": "earth_620120_260806.bpc",
+            "bytes": 12274688,
+            "sha256": "652b02c0b3a5a283d393497f7f96e1fe4aa47ee6dcc035a089eb9e6b5df86643"
+          },
+          {
+            "name": "earth_latest_high_prec.bpc",
+            "bytes": 5121024,
+            "sha256": "11b9a98dbe9845d17849832350a58fcca3fc63e9f14e19535e4a92bf0e4b0d41"
+          },
+          {
+            "name": "linux_p1550p2650.440",
+            "bytes": 102272352,
+            "sha256": "29915576d0a6555766b99485ac3056ee415e86df4fce282611c31afb329ad062"
+          },
+          {
+            "name": "meta_kernel.txt",
+            "bytes": 295,
+            "sha256": "e0a2f278ccaa1ab921edb53f0c42bfcf2243ec653718ba6df654a70ecdc78564"
+          },
+          {
+            "name": "naif0012.tls",
+            "bytes": 5257,
+            "sha256": "678e32bdb5a744117a467cd9601cd6b373f0e9bc9bbde1371d5eee39600a039b"
+          },
+          {
+            "name": "pck00010.pck",
+            "bytes": 126143,
+            "sha256": "59468328349aa730d18bf1f8d7e86efe6e40b75dfb921908f99321b3a7a701d2"
+          },
+          {
+            "name": "sb441-n16.bsp",
+            "bytes": 645727232,
+            "sha256": "919d612ce3c72a78fc7158f9120156542d0f21e6b8b052e4c1339c759747fd90"
+          }
+        ]
+      },
+      "sorcha_version": "1.2.1"
+    }
+  ],
+  "boundaries": {
+    "population": {
+      "boundary": "population -> simulator inputs",
+      "n_runs": 75,
+      "total_objects": 4980,
+      "median_generation_seconds": 0.0028069620002497686,
+      "total_bytes": 1132838,
+      "median_bytes_per_object": 276.0
+    },
+    "dataset": [
+      {
+        "boundary": "detections -> (parameters, observations) pairs",
+        "n_pairs": 64,
+        "composition": {
+          "label": "compose",
+          "started_utc": "2026-08-26T01:28:34+00:00",
+          "wall_seconds": 0.01193436500034295
+        },
+        "bytes": {
+          "by_role": {
+            "detections_raw": 665413,
+            "pairs_summarised": 6532
+          },
+          "total_bytes": 671945
+        },
+        "bytes_raw_per_pair": 10397.078125,
+        "bytes_summarised_per_pair": 102.0625,
+        "raw_to_summary_ratio": 101.86971830985915,
+        "dtype_note": "The SBI library consumes float32 tensors; this artifact is written as text and cast at load time, which costs a conversion pass and keeps the artifact readable by anything. Storing float32 directly would save roughly half the bytes of the summarised table and none of the raw table, which dominates."
+      }
+    ],
+    "library": [
+      {
+        "boundary": "reweighted-library viability",
+        "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+        "criterion": "n_eff > 4.0 * n_obs (Farr 2019, arXiv:1904.10879)",
+        "n_obs_scenarios": [
+          {
+            "n_obs": 14,
+            "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo"
+          },
+          {
+            "n_obs": 40,
+            "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys"
+          },
+          {
+            "n_obs": 100,
+            "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering"
+          }
+        ],
+        "library_size": 1000,
+        "n_detected_in_library": 76,
+        "simulation_wall_seconds": 54.07605474800039,
+        "rungs": [
+          {
+            "scale": 0.0,
+            "theta_requested": {
+              "size_slope_alpha": 0.6,
+              "inclination_width_deg": 35.0
+            },
+            "theta": {
+              "size_slope_alpha": 0.6,
+              "inclination_width_deg": 35.0
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 1000.0,
+            "n_eff_detected": 76.0,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": true
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 0,
+              "fraction": 0.0
+            },
+            "composition_wall_seconds": 0.521956067001156,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.55409868099923,
+            "speedup": 103.6026941092738
+          },
+          {
+            "scale": 0.125,
+            "theta_requested": {
+              "size_slope_alpha": 0.65,
+              "inclination_width_deg": 32.8125
+            },
+            "theta": {
+              "size_slope_alpha": 0.65,
+              "inclination_width_deg": 32.8125
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 979.0145042442185,
+            "n_eff_detected": 73.97533799844892,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": true
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 7,
+              "fraction": 0.007
+            },
+            "composition_wall_seconds": 0.5195499530000234,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.556504795000365,
+            "speedup": 104.08249377321752
+          },
+          {
+            "scale": 0.25,
+            "theta_requested": {
+              "size_slope_alpha": 0.7,
+              "inclination_width_deg": 30.625
+            },
+            "theta": {
+              "size_slope_alpha": 0.7,
+              "inclination_width_deg": 30.625
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 930.9214131485726,
+            "n_eff_detected": 68.88931980639138,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": true
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 17,
+              "fraction": 0.017
+            },
+            "composition_wall_seconds": 0.5214976229999593,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.55455712500043,
+            "speedup": 103.69377033192079
+          },
+          {
+            "scale": 0.375,
+            "theta_requested": {
+              "size_slope_alpha": 0.75,
+              "inclination_width_deg": 28.4375
+            },
+            "theta": {
+              "size_slope_alpha": 0.75,
+              "inclination_width_deg": 28.4375
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 863.5601800141567,
+            "n_eff_detected": 64.79169747265517,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": true
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 26,
+              "fraction": 0.026
+            },
+            "composition_wall_seconds": 0.5184905149999395,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.55756423300045,
+            "speedup": 104.29516680359467
+          },
+          {
+            "scale": 0.5,
+            "theta_requested": {
+              "size_slope_alpha": 0.8,
+              "inclination_width_deg": 26.25
+            },
+            "theta": {
+              "size_slope_alpha": 0.8,
+              "inclination_width_deg": 26.25
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 775.6725528367912,
+            "n_eff_detected": 58.78734539286784,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": true
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 51,
+              "fraction": 0.051
+            },
+            "composition_wall_seconds": 0.5100412299998425,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.566013518000545,
+            "speedup": 106.02290867351466
+          },
+          {
+            "scale": 0.625,
+            "theta_requested": {
+              "size_slope_alpha": 0.85,
+              "inclination_width_deg": 24.0625
+            },
+            "theta": {
+              "size_slope_alpha": 0.85,
+              "inclination_width_deg": 24.0625
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 678.778900585154,
+            "n_eff_detected": 51.41074452566792,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 89,
+              "fraction": 0.089
+            },
+            "composition_wall_seconds": 0.49765668700092647,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.57839806099946,
+            "speedup": 108.66136467266985
+          },
+          {
+            "scale": 0.75,
+            "theta_requested": {
+              "size_slope_alpha": 0.9,
+              "inclination_width_deg": 21.875
+            },
+            "theta": {
+              "size_slope_alpha": 0.9,
+              "inclination_width_deg": 21.875
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 579.7129127058358,
+            "n_eff_detected": 43.00185039016771,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 142,
+              "fraction": 0.142
+            },
+            "composition_wall_seconds": 0.48245711799972923,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.59359763000066,
+            "speedup": 112.08468634932802
+          },
+          {
+            "scale": 0.875,
+            "theta_requested": {
+              "size_slope_alpha": 0.95,
+              "inclination_width_deg": 19.6875
+            },
+            "theta": {
+              "size_slope_alpha": 0.95,
+              "inclination_width_deg": 19.6875
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 483.20777131926417,
+            "n_eff_detected": 34.773111368187735,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 206,
+              "fraction": 0.206
+            },
+            "composition_wall_seconds": 0.46366989800117153,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.612384849999216,
+            "speedup": 116.62619242939027
+          },
+          {
+            "scale": 1.0,
+            "theta_requested": {
+              "size_slope_alpha": 1.0,
+              "inclination_width_deg": 17.5
+            },
+            "theta": {
+              "size_slope_alpha": 1.0,
+              "inclination_width_deg": 17.5
+            },
+            "clamped_to_prior": false,
+            "library_size": 1000,
+            "n_detected_in_library": 76,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 391.040634108891,
+            "n_eff_detected": 27.0541681055064,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 289,
+              "fraction": 0.289
+            },
+            "composition_wall_seconds": 0.4463386410006933,
+            "simulation_wall_seconds": 54.07605474800039,
+            "wall_seconds_saved": 53.629716106999695,
+            "speedup": 121.15476855591446
+          }
+        ],
+        "bytes": {
+          "by_role": {
+            "composed_x": 2060,
+            "ladder": 15583
+          },
+          "total_bytes": 17643
+        }
+      }
+    ],
+    "training": [
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 48,
+        "n_simulations_used": 48,
+        "master_seed": 11,
+        "pairs_binding": "sorcha",
+        "pairs_binding_note": "These pairs were produced by the real survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:29:41+00:00",
+          "wall_seconds": 0.6339485630014678
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:29:41+00:00",
+          "wall_seconds": 1.3536093390011956
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 1057
+          },
+          "total_bytes": 280556
+        },
+        "sbc": {
+          "n_evaluations": 16,
+          "coverage": {
+            "central_50": 0.21875,
+            "central_90": 0.6875
+          },
+          "checks": {
+            "ks_pvals": [
+              0.13331176340579987,
+              0.06212664395570755
+            ],
+            "c2st_ranks": [
+              0.4619047619047619,
+              0.719047619047619
+            ],
+            "c2st_dap": [
+              0.3476190476190476,
+              0.45714285714285713
+            ]
+          }
+        }
+      },
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 48,
+        "n_simulations_used": 48,
+        "master_seed": 23,
+        "pairs_binding": "sorcha",
+        "pairs_binding_note": "These pairs were produced by the real survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:29:31+00:00",
+          "wall_seconds": 0.5977601060003508
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:29:31+00:00",
+          "wall_seconds": 1.544341879998683
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 1043
+          },
+          "total_bytes": 280542
+        },
+        "sbc": {
+          "n_evaluations": 16,
+          "coverage": {
+            "central_50": 0.28125,
+            "central_90": 0.71875
+          },
+          "checks": {
+            "ks_pvals": [
+              0.303428053855896,
+              0.08104585856199265
+            ],
+            "c2st_ranks": [
+              0.33809523809523806,
+              0.5
+            ],
+            "c2st_dap": [
+              0.4333333333333333,
+              0.46190476190476193
+            ]
+          }
+        }
+      }
+    ],
+    "campaign": {
+      "boundary": "simulator run",
+      "binding": "sorcha",
+      "n_runs": 75,
+      "cost_model": {
+        "model": "T(N) = T_fixed + N * t_marginal",
+        "points": [
+          {
+            "n_objects": 10,
+            "repetitions": 3,
+            "median_wall_seconds": 28.402937750001,
+            "wall_seconds": [
+              28.126858507999714,
+              28.402937750001,
+              28.463858985000115
+            ]
+          },
+          {
+            "n_objects": 100,
+            "repetitions": 3,
+            "median_wall_seconds": 30.93438446000073,
+            "wall_seconds": [
+              30.65559970600043,
+              30.93438446000073,
+              31.34282798300046
+            ]
+          },
+          {
+            "n_objects": 1000,
+            "repetitions": 3,
+            "median_wall_seconds": 53.87020519299949,
+            "wall_seconds": [
+              53.870138147000034,
+              53.87020519299949,
+              54.72034759999951
+            ]
+          }
+        ],
+        "warmup_runs_excluded": [],
+        "fit": {
+          "available": true,
+          "fixed_seconds": 28.253812913723173,
+          "marginal_seconds_per_object": 0.02562710690255109,
+          "r_squared": 0.9999352614795002,
+          "n_points": 3
+        },
+        "fixed_cost_from_log": {
+          "available": true,
+          "n_runs": 9,
+          "median_fixed_seconds": 13.607205192999494,
+          "median_size_independent_seconds": 11.579,
+          "median_interpreter_startup_seconds": 2.018937750001001,
+          "phases_treated_as_size_independent": [
+            "startup",
+            "pointing_database",
+            "ephemeris_setup"
+          ]
+        },
+        "fixed_cost_agreement": {
+          "from_sweep_seconds": 28.253812913723173,
+          "from_log_seconds": 13.607205192999494,
+          "difference_seconds": 14.64660772072368
+        }
+      },
+      "seeds_recovered": {
+        "n_runs": 75,
+        "all_recovered": true,
+        "distinct_seeds": 75,
+        "examples": [
+          {
+            "label": "draw-0000",
+            "base_seed": 3176080611,
+            "source": "runs/sp1-sweep/campaign/draw-0000/detections-2026-08-25-21-07-48-p118280-sorcha.log"
+          },
+          {
+            "label": "draw-0001",
+            "base_seed": 1215330976,
+            "source": "runs/sp1-sweep/campaign/draw-0001/detections-2026-08-25-20-58-25-p80864-sorcha.log"
+          },
+          {
+            "label": "draw-0002",
+            "base_seed": 4077534452,
+            "source": "runs/sp1-sweep/campaign/draw-0002/detections-2026-08-25-21-25-45-p232983-sorcha.log"
+          },
+          {
+            "label": "draw-0003",
+            "base_seed": 3550152628,
+            "source": "runs/sp1-sweep/campaign/draw-0003/detections-2026-08-25-20-53-09-p64034-sorcha.log"
+          },
+          {
+            "label": "draw-0004",
+            "base_seed": 1022402746,
+            "source": "runs/sp1-sweep/campaign/draw-0004/detections-2026-08-25-21-05-55-p109961-sorcha.log"
+          },
+          {
+            "label": "draw-0005",
+            "base_seed": 3370773931,
+            "source": "runs/sp1-sweep/campaign/draw-0005/detections-2026-08-25-21-12-30-p141182-sorcha.log"
+          },
+          {
+            "label": "draw-0006",
+            "base_seed": 2853725907,
+            "source": "runs/sp1-sweep/campaign/draw-0006/detections-2026-08-25-21-03-08-p98438-sorcha.log"
+          },
+          {
+            "label": "draw-0007",
+            "base_seed": 263258750,
+            "source": "runs/sp1-sweep/campaign/draw-0007/detections-2026-08-25-21-20-06-p188640-sorcha.log"
+          },
+          {
+            "label": "draw-0008",
+            "base_seed": 661021234,
+            "source": "runs/sp1-sweep/campaign/draw-0008/detections-2026-08-25-21-28-06-p253476-sorcha.log"
+          },
+          {
+            "label": "draw-0009",
+            "base_seed": 4143853443,
+            "source": "runs/sp1-sweep/campaign/draw-0009/detections-2026-08-25-21-19-09-p182013-sorcha.log"
+          }
+        ]
+      },
+      "peak_rss_bytes": {
+        "available": true,
+        "max": 837345280,
+        "n_runs_measured": 75,
+        "n_runs_excluded_as_too_short": 0,
+        "source": "proc_vm_hwm, largest single process in the run's process tree"
+      },
+      "detection_efficiency": {
+        "n_runs": 64,
+        "median_fraction_objects_detected": 0.1,
+        "median_detections_per_object": 3.2,
+        "total_objects": 640,
+        "total_objects_detected": 52,
+        "total_detections": 2454
+      },
+      "bytes_per_detection": {
+        "median": 270.17611489040064,
+        "n_runs": 46
+      }
+    }
+  },
+  "manifests": {
+    "root": "runs/sp1-sweep",
+    "n_manifests": 155,
+    "by_stage": {
+      "campaign": 75,
+      "dataset": 1,
+      "library": 1,
+      "population": 75,
+      "snapshot": 1,
+      "training": 2
+    },
+    "examples": [
+      "runs/sp1-sweep/campaign/draw-0000/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0001/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0002/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0003/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0004/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0005/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0006/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0007/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0008/campaign.manifest.json",
+      "runs/sp1-sweep/campaign/draw-0009/campaign.manifest.json"
+    ]
+  }
+}

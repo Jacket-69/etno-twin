@@ -1,0 +1,111 @@
+# Smoke experiment, sorcha binding — the configuration the workstation runs.
+#
+# Byte-for-byte the fake smoke configuration with the binding switched, so the only
+# difference between what continuous integration exercises and what the workstation
+# exercises is which process the campaign stage spawns.
+#
+# It needs the ephemeris cache already present at the path below. Nothing here fetches
+# it: the cache is an external, versioned dependency of roughly 780 MB, and a missing
+# one is an error rather than a download.
+
+[experiment]
+name = "smoke-sorcha"
+description = "End-to-end smoke of the tracer bullet against the real survey simulator."
+master_seed = 20260825
+outdir = "runs/smoke-sorcha"
+
+[population]
+model = "toy-parametric"
+n_objects = 10
+# Ranges bracketing the demo object this toy is calibrated against: the large-orbit
+# analogue sorcha's own demo detects, a = 103.7 au, q = 36.7 au, H_r = 6.9. They are not
+# a description of the extreme trans-Neptunian population, which arrives with the real
+# population model in a later phase.
+semi_major_axis_au = [50.0, 150.0]
+perihelion_au = [32.0, 45.0]
+absolute_magnitude_r = [4.0, 7.0]
+inclination_truncation_scale = 3.0
+epoch_mjd_tdb = 60200.0
+phase_slope_g = 0.15
+
+[population.colours]
+"u-r" = 2.13
+"g-r" = 0.65
+"i-r" = -0.19
+"z-r" = 0.14
+"y-r" = -0.14
+
+[prior.size_slope_alpha]
+distribution = "uniform"
+low = 0.2
+high = 1.0
+
+[prior.inclination_width_deg]
+distribution = "uniform"
+low = 5.0
+high = 40.0
+
+[campaign]
+binding = "sorcha"
+n_draws = 16
+sweep_objects = [10]
+sweep_repetitions = 1
+warmup_runs = 1
+
+[campaign.sorcha]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_db = "auto"
+ephemeris_cache = "~/.cache/sorcha"
+
+[campaign.fake]
+config_ini = "fixtures/sorcha/etno-twin-demo.ini"
+pointing_table = "fixtures/pointing/rubin-baseline-1yr-subsample.csv"
+# Probability that an object falls in a given night's fields. It absorbs the subsampling
+# of the cadence fixture — 480 visits standing in for 216,233 — rather than describing
+# sky coverage, and is set so the fake detects a comparable fraction of a population to
+# what the real simulator detects on its own demo.
+field_probability = 0.45
+
+[dataset]
+magnitude_bins = [21.0, 22.5, 24.0]
+distance_bins_au = [50.0, 80.0, 110.0]
+
+[training]
+n_simulations = [12]
+master_seeds = [11, 23]
+sbc_evaluations = 4
+sbc_posterior_samples = 50
+max_epochs = 20
+density_estimator = "maf"
+
+[library]
+n_objects = 10
+theta_ladder_scale = [0.0, 0.25, 0.5, 0.75, 1.0]
+neff_criterion_factor = 4.0
+
+# The criterion N_eff > 4 * N_obs moves with the size of the observed catalogue the
+# inference would be applied to, so it is evaluated against several declared sizes rather
+# than one chosen by hand. The effective sample size itself is reported raw alongside.
+[[library.n_obs_scenarios]]
+n_obs = 14
+provenance = "Napier et al. 2021 — the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo"
+
+[[library.n_obs_scenarios]]
+n_obs = 40
+provenance = "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys"
+
+[[library.n_obs_scenarios]]
+n_obs = 100
+provenance = "Prospective scenario: a Rubin-era catalogue after the survey has been discovering"
+
+[library.reference]
+size_slope_alpha = 0.6
+inclination_width_deg = 35.0
+
+# The ladder walks towards a steeper size distribution and a narrower inclination
+# distribution at once. Both directions make the weights less even, and the narrowing
+# additionally pushes part of the library outside the target's support, so the rejected
+# fraction is a live number rather than a column of zeros.
+[library.ladder_direction]
+size_slope_alpha = 1.0
+inclination_width_deg = -1.0

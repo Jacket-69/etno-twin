@@ -19,6 +19,7 @@ dev = [
     "pytest>=8",
     "ruff>=0.6",
     "mypy>=1.11",
+    "import-linter>=2",
 ]
 spike = [
     "sbi>=0.27.0",
@@ -39,11 +40,21 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# Greek letters are the notation this domain writes its distributions in; flagging
+# them as look-alikes for Latin letters would push the documentation into transliteration.
+allowed-confusables = ["α", "σ", "Δ", "μ"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["src"]
+files = ["src", "scripts"]
+
+# The SBI stack ships no type information. Only the training stage imports it, and an
+# import-linter contract keeps it that way, so the untyped surface is confined to one
+# module rather than leaking across the package.
+[[tool.mypy.overrides]]
+module = ["sbi.*", "torch.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -51,3 +62,55 @@ addopts = "-q --strict-markers"
 markers = [
     "integration: needs real survey simulators or external archives; excluded from CI",
 ]
+
+# Module boundaries, enforced rather than documented. ADR-0001 anticipates these
+# contracts as its verification mechanism; they are active from the first commit of the
+# implementation, because a boundary that is only checked once it has already been
+# crossed is a boundary that has already been lost.
+[tool.importlinter]
+root_package = "etno_twin"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Stages are independent of one another"
+type = "independence"
+modules = [
+    "etno_twin.stages.snapshot",
+    "etno_twin.stages.population",
+    "etno_twin.stages.campaign",
+    "etno_twin.stages.dataset",
+    "etno_twin.stages.library",
+    "etno_twin.stages.training",
+    "etno_twin.stages.collate",
+]
+
+[[tool.importlinter.contracts]]
+name = "Stages sit above simulator bindings, which sit above the shared kernel"
+type = "layers"
+layers = [
+    "etno_twin.stages",
+    "etno_twin.simulators",
+    "etno_twin.kernel",
+]
+
+[[tool.importlinter.contracts]]
+name = "Nothing imports the survey simulator"
+type = "forbidden"
+source_modules = ["etno_twin"]
+forbidden_modules = ["sorcha"]
+
+[[tool.importlinter.contracts]]
+name = "Only the training stage imports the neural stack"
+type = "forbidden"
+source_modules = [
+    "etno_twin.cli",
+    "etno_twin.kernel",
+    "etno_twin.simulators",
+    "etno_twin.stages.snapshot",
+    "etno_twin.stages.population",
+    "etno_twin.stages.campaign",
+    "etno_twin.stages.dataset",
+    "etno_twin.stages.library",
+    "etno_twin.stages.collate",
+]
+forbidden_modules = ["torch", "sbi"]

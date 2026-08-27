@@ -35,8 +35,38 @@ jobs:
       - name: Typecheck
         run: uv run mypy
 
+      # Module boundaries are the verification mechanism ADR-0001 names. Checking them
+      # here is what makes "stages do not import each other" a fact rather than an
+      # intention.
+      - name: Module boundaries
+        run: uv run lint-imports
+
       # Integration tests are excluded by design: they need a Fortran toolchain and
       # external survey characterisation archives. The core must be exercisable
       # against fake simulators — see docs/quality/testing-strategy.md.
       - name: Unit tests
         run: uv run pytest -m "not integration"
+
+      # The other half of the double binding. The same graph the workstation runs against
+      # the real survey simulator, run here against the fake one over committed fixtures:
+      # no network, no Fortran toolchain, none of the 780 MB of ephemeris kernels. If this
+      # passes and the workstation run passes, the stages are genuinely independent of
+      # which simulator sits behind the port — which is the milestone 2 gate.
+      - name: Walking skeleton, fake binding
+        run: >
+          uv run snakemake --cores 1 --resources bench_slot=1
+          --config experiment=experiments/smoke-fake.toml
+
+      - name: Measurements were produced
+        run: |
+          uv run python - <<'PY'
+          import json
+          payload = json.load(open("runs/smoke-fake/measurements.json"))
+          campaign = payload["boundaries"]["campaign"]
+          assert campaign["binding"] == "fake"
+          assert campaign["cost_model"]["points"], "no timing points were recorded"
+          assert campaign["seeds_recovered"]["all_recovered"], (
+              "a run reached the manifest without its seed"
+          )
+          assert payload["boundaries"]["library"], "the reweighted-library ladder is missing"
+          PY

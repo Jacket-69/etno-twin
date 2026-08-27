@@ -1,0 +1,19 @@
+# Excerpt of a real sorcha run log, kept as the canary fixture for the seed parser
+# and the phase markers. Only the lines the parsers look at are kept: the seed lines
+# and the phase boundaries. Everything else, including the recorded command line and
+# the copy of the configuration file, is dropped — the fixture exists to pin a log
+# format, not to carry one machine's paths into the repository.
+#
+# Regenerate after a sorcha version bump; a diff here is the version bump breaking the
+# surfaces this project depends on, which is the whole point of the canary.
+2026-08-25 20:05:38,980 root         INFO     Sorcha Start (Main) 
+2026-08-25 20:05:38,981 sorcha.utilities.sorchaArguments INFO     the base rng seed is 1976528314 
+2026-08-25 20:05:38,982 sorcha.sorcha INFO     Reading pointing database... 
+2026-08-25 20:05:39,391 sorcha.sorcha INFO     Pre-computing pointing information for ephemeris generation 
+2026-08-25 20:05:51,156 sorcha.sorcha INFO     Starting main Sorcha processing loop round 0 
+2026-08-25 20:05:51,168 sorcha.utilities.sorchaArguments INFO     Generating ASSIST+REBOUND simulations. 
+2026-08-25 20:05:52,187 sorcha.utilities.sorchaArguments INFO     Generating ephemeris... 
+2026-08-25 20:06:05,635 sorcha.utilities.sorchaArguments INFO     Ephemeris generated. 
+2026-08-25 20:06:05,653 sorcha.utilities.sorchaArguments INFO     the rng seed for the sorcha.modules.PPRandomizeMeasurements module is 897560051 
+2026-08-25 20:06:05,669 sorcha.utilities.sorchaArguments INFO     the rng seed for the sorcha.modules.PPDropObservations module is 960780149 
+2026-08-25 20:06:05,689 sorcha.sorcha INFO     Sorcha process is completed. 

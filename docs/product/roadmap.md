@@ -12,16 +12,18 @@ this one tracks the software.
 
 | # | Milestone | Gate | Status |
 |---|---|---|---|
-| 1 | **Reconnaissance spike (SP-1)** | The five open questions in [ADR-0001](../architecture/decisions/0001-architecture-style.md) are answered with evidence, each with a source; ADR-0001 moves to `accepted` | **Active** |
-| 2 | **Walking skeleton** | The chain runs end to end on toy data with fake simulators, in CI, with no Fortran toolchain present | Blocked by 1 |
-| 3 | **Unified catalogue with provenance** | An ETNO snapshot is built from at least two real sources, with a manifest recording temporal cut and source hashes; rebuilding it from the same cut produces an identical hash | Blocked by 1 |
+| 1 | **Reconnaissance spike (SP-1)** | The five open questions in [ADR-0001](../architecture/decisions/0001-architecture-style.md) are answered with evidence, each with a source; ADR-0001 moves to `accepted` | **Done — 2026-08-25** |
+| 2 | **Walking skeleton** | The chain runs end to end on toy data with fake simulators, in CI, with no Fortran toolchain present | **Substantially met** by the SP-1 tracer bullet — the same DAG runs against both bindings and CI exercises the fake one. Formal close pending a review of the stage set against the real pipeline |
+| 3 | **Unified catalogue with provenance** | An ETNO snapshot is built from at least two real sources, with a manifest recording temporal cut and source hashes; rebuilding it from the same cut produces an identical hash | **Next** — unblocked; the Rubin Science Platform account was approved 2026-08-25, so the ingestion schema can be built against the real `SSSource`/`SSObject` schema |
 | 4 | **Selection functions behind one interface** | The same synthetic population is pushed through the OSSOS simulator and through sorcha via the same call, and both return detections in a common schema | Blocked by 3 |
 | 5 | **Classical baseline reproduced** | Published results of the reference analysis are reproduced within stated tolerance over the same sample | Blocked by 4 |
-| 6 | **Simulation campaign at scale** | A campaign survives an interrupted run and resumes without recomputing completed work; throughput measured in object-visits per unit time on both machines | Blocked by 4 |
+| 6 | **Simulation campaign at scale** | A campaign survives an interrupted run and resumes without recomputing completed work; throughput measured in object-visits per unit time on both machines | Blocked by 4. **Resumption already demonstrated** on 2026-08-25: a 20,416-job run killed at 96 % resumed from artifacts without recomputation |
 | 7 | **Inference and diagnostics** | Posterior calibrated on synthetic populations with known truth; credible-interval coverage within tolerance | Blocked by 6 |
 | 8 | **One-command reproduction** | Two tiered claims, named as such. **Reproducibility:** a clean clone regenerates every published figure and table from persisted artifacts — including the trained network — with one documented command. **Replicability:** a fresh master seed yields posterior and coverage compatible within a declared tolerance. Retraining from scratch is the replication claim, never the default path | Blocked by 7 |
 
-Milestone 1 is a spike, so everything after it is marked blocked rather than
+Milestone 1 closed on 2026-08-25 with [ADR-0001](../architecture/decisions/0001-architecture-style.md)
+accepted and its evidence versioned under `docs/architecture/evidence/`. The spike was a
+spike, so everything after it was marked blocked rather than
 scheduled: the spike may change how milestones 2, 4 and 6 are built. Scope does not
 change — the deliverables come from the thesis proposal — only the shape of the
 implementation.

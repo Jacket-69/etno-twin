@@ -1,0 +1,549 @@
+{
+  "schema": "etno-twin/measurements@1",
+  "generated_utc": "2026-08-26T01:55:51+00:00",
+  "experiment": {
+    "name": "sp1-training-budget",
+    "config_path": "/home/jacket/Proyectos/Repositorios/UNIVERSIDAD/etno-twin/experiments/sp1-training-budget.toml",
+    "config_sha256": "57da8aeb6e3c6a918f40ad600492bfc36a5998946235fab813a236c57eb2d01b",
+    "master_seed": 20260827,
+    "prior_fingerprint": "de94d187d557adae5dc473222fb16af9a9e590297c0e460797135f86c6d4c3db"
+  },
+  "binding": "fake",
+  "external_data": [
+    {
+      "binding": "fake",
+      "ephemeris": {
+        "applicable": false,
+        "reason": "the fake binding computes no ephemerides"
+      }
+    }
+  ],
+  "boundaries": {
+    "population": {
+      "boundary": "population -> simulator inputs",
+      "n_runs": 10203,
+      "total_objects": 102120,
+      "median_generation_seconds": 0.005362481000702246,
+      "total_bytes": 28195406,
+      "median_bytes_per_object": 276.1
+    },
+    "dataset": [
+      {
+        "boundary": "detections -> (parameters, observations) pairs",
+        "n_pairs": 10200,
+        "composition": {
+          "label": "compose",
+          "started_utc": "2026-08-26T01:55:09+00:00",
+          "wall_seconds": 7.607120064998526
+        },
+        "bytes": {
+          "by_role": {
+            "detections_raw": 489248120,
+            "pairs_summarised": 1055990
+          },
+          "total_bytes": 490304110
+        },
+        "bytes_raw_per_pair": 47965.50196078431,
+        "bytes_summarised_per_pair": 103.52843137254902,
+        "raw_to_summary_ratio": 463.30753132131935,
+        "dtype_note": "The SBI library consumes float32 tensors; this artifact is written as text and cast at load time, which costs a conversion pass and keeps the artifact readable by anything. Storing float32 directly would save roughly half the bytes of the summarised table and none of the raw table, which dominates."
+      }
+    ],
+    "library": [
+      {
+        "boundary": "reweighted-library viability",
+        "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+        "criterion": "n_eff > 4.0 * n_obs (Farr 2019, arXiv:1904.10879)",
+        "n_obs_scenarios": [
+          {
+            "n_obs": 14,
+            "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo"
+          },
+          {
+            "n_obs": 40,
+            "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys"
+          },
+          {
+            "n_obs": 100,
+            "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering"
+          }
+        ],
+        "library_size": 100,
+        "n_detected_in_library": 16,
+        "simulation_wall_seconds": 0.15882991400030733,
+        "rungs": [
+          {
+            "scale": 0.0,
+            "theta_requested": {
+              "size_slope_alpha": 0.6,
+              "inclination_width_deg": 35.0
+            },
+            "theta": {
+              "size_slope_alpha": 0.6,
+              "inclination_width_deg": 35.0
+            },
+            "clamped_to_prior": false,
+            "library_size": 100,
+            "n_detected_in_library": 16,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 100.0,
+            "n_eff_detected": 16.0,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 0,
+              "fraction": 0.0
+            },
+            "composition_wall_seconds": 0.08940323599927069,
+            "simulation_wall_seconds": 0.15882991400030733,
+            "wall_seconds_saved": 0.06942667800103663,
+            "speedup": 1.7765566561998156
+          },
+          {
+            "scale": 0.5,
+            "theta_requested": {
+              "size_slope_alpha": 0.8,
+              "inclination_width_deg": 26.25
+            },
+            "theta": {
+              "size_slope_alpha": 0.8,
+              "inclination_width_deg": 26.25
+            },
+            "clamped_to_prior": false,
+            "library_size": 100,
+            "n_detected_in_library": 16,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 79.38921462226207,
+            "n_eff_detected": 12.231667129575056,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 2,
+              "fraction": 0.02
+            },
+            "composition_wall_seconds": 0.0549782399994001,
+            "simulation_wall_seconds": 0.15882991400030733,
+            "wall_seconds_saved": 0.10385167400090722,
+            "speedup": 2.8889595956880467
+          },
+          {
+            "scale": 1.0,
+            "theta_requested": {
+              "size_slope_alpha": 1.0,
+              "inclination_width_deg": 17.5
+            },
+            "theta": {
+              "size_slope_alpha": 1.0,
+              "inclination_width_deg": 17.5
+            },
+            "clamped_to_prior": false,
+            "library_size": 100,
+            "n_detected_in_library": 16,
+            "n_eff_formula": "kish: (sum w)^2 / sum w^2",
+            "n_eff_library": 42.8547394574488,
+            "n_eff_detected": 5.520560470165336,
+            "n_eff_criterion": {
+              "reported_against": "n_eff_detected",
+              "factor": 4.0,
+              "source": "Farr 2019, arXiv:1904.10879, after equation 12",
+              "scenarios": [
+                {
+                  "n_obs": 14,
+                  "provenance": "Napier et al. 2021 \u2014 the reference analysis milestone 5 reproduces, which measured with 14 ETNOs from DES, OSSOS and Sheppard & Trujillo",
+                  "threshold": 56.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 40,
+                  "provenance": "Intermediate scenario: the order of magnitude of the extreme trans-Neptunian sample assembled across published surveys",
+                  "threshold": 160.0,
+                  "met": false
+                },
+                {
+                  "n_obs": 100,
+                  "provenance": "Prospective scenario: a Rubin-era catalogue after the survey has been discovering",
+                  "threshold": 400.0,
+                  "met": false
+                }
+              ]
+            },
+            "rejected_out_of_support": {
+              "count": 32,
+              "fraction": 0.32
+            },
+            "composition_wall_seconds": 0.04628328899889311,
+            "simulation_wall_seconds": 0.15882991400030733,
+            "wall_seconds_saved": 0.11254662500141421,
+            "speedup": 3.4316903019598675
+          }
+        ],
+        "bytes": {
+          "by_role": {
+            "composed_x": 768,
+            "ladder": 5303
+          },
+          "total_bytes": 6071
+        }
+      }
+    ],
+    "training": [
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 1000,
+        "n_simulations_used": 1000,
+        "master_seed": 11,
+        "pairs_binding": "fake",
+        "pairs_binding_note": "These pairs were produced by the fake binding. Wall-clock of training, bytes of the persisted network and calibration do not depend on which simulator produced the pairs \u2014 the network sees a table of parameters and summary vectors and cannot know what wrote them \u2014 so the measurement keeps its meaning while its cost falls from tens of hours of real simulator time to minutes. Nothing here is a measurement of the survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:55:20+00:00",
+          "wall_seconds": 5.1914332209998975
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:55:25+00:00",
+          "wall_seconds": 4.063947407001251
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 8003
+          },
+          "total_bytes": 287502
+        },
+        "sbc": {
+          "n_evaluations": 200,
+          "coverage": {
+            "central_50": 0.4399999976158142,
+            "central_90": 0.8125
+          },
+          "checks": {
+            "ks_pvals": [
+              0.006329643540084362,
+              0.1284147948026657
+            ],
+            "c2st_ranks": [
+              0.5075,
+              0.49750000000000005
+            ],
+            "c2st_dap": [
+              0.49749999999999994,
+              0.48250000000000004
+            ]
+          }
+        }
+      },
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 1000,
+        "n_simulations_used": 1000,
+        "master_seed": 23,
+        "pairs_binding": "fake",
+        "pairs_binding_note": "These pairs were produced by the fake binding. Wall-clock of training, bytes of the persisted network and calibration do not depend on which simulator produced the pairs \u2014 the network sees a table of parameters and summary vectors and cannot know what wrote them \u2014 so the measurement keeps its meaning while its cost falls from tens of hours of real simulator time to minutes. Nothing here is a measurement of the survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:55:20+00:00",
+          "wall_seconds": 3.1797867780005618
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:55:23+00:00",
+          "wall_seconds": 4.106333050998728
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 7989
+          },
+          "total_bytes": 287488
+        },
+        "sbc": {
+          "n_evaluations": 200,
+          "coverage": {
+            "central_50": 0.3725000023841858,
+            "central_90": 0.7724999785423279
+          },
+          "checks": {
+            "ks_pvals": [
+              6.96361021255143e-05,
+              0.15611791610717773
+            ],
+            "c2st_ranks": [
+              0.52,
+              0.48999999999999994
+            ],
+            "c2st_dap": [
+              0.5325,
+              0.5349999999999999
+            ]
+          }
+        }
+      },
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 10000,
+        "n_simulations_used": 10000,
+        "master_seed": 11,
+        "pairs_binding": "fake",
+        "pairs_binding_note": "These pairs were produced by the fake binding. Wall-clock of training, bytes of the persisted network and calibration do not depend on which simulator produced the pairs \u2014 the network sees a table of parameters and summary vectors and cannot know what wrote them \u2014 so the measurement keeps its meaning while its cost falls from tens of hours of real simulator time to minutes. Nothing here is a measurement of the survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:55:20+00:00",
+          "wall_seconds": 17.48183051200067
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:55:38+00:00",
+          "wall_seconds": 3.653111474999605
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 8008
+          },
+          "total_bytes": 287507
+        },
+        "sbc": {
+          "n_evaluations": 200,
+          "coverage": {
+            "central_50": 0.4449999928474426,
+            "central_90": 0.8525000214576721
+          },
+          "checks": {
+            "ks_pvals": [
+              0.008420757949352264,
+              0.2534339427947998
+            ],
+            "c2st_ranks": [
+              0.5425,
+              0.5025000000000001
+            ],
+            "c2st_dap": [
+              0.495,
+              0.5075000000000001
+            ]
+          }
+        }
+      },
+      {
+        "boundary": "training and calibration",
+        "n_simulations_requested": 10000,
+        "n_simulations_used": 10000,
+        "master_seed": 23,
+        "pairs_binding": "fake",
+        "pairs_binding_note": "These pairs were produced by the fake binding. Wall-clock of training, bytes of the persisted network and calibration do not depend on which simulator produced the pairs \u2014 the network sees a table of parameters and summary vectors and cannot know what wrote them \u2014 so the measurement keeps its meaning while its cost falls from tens of hours of real simulator time to minutes. Nothing here is a measurement of the survey simulator.",
+        "training": {
+          "label": "train",
+          "started_utc": "2026-08-26T01:55:20+00:00",
+          "wall_seconds": 19.82402075400023
+        },
+        "calibration": {
+          "label": "sbc",
+          "started_utc": "2026-08-26T01:55:40+00:00",
+          "wall_seconds": 3.5513475659990945
+        },
+        "bytes": {
+          "by_role": {
+            "posterior": 279499,
+            "sbc": 7991
+          },
+          "total_bytes": 287490
+        },
+        "sbc": {
+          "n_evaluations": 200,
+          "coverage": {
+            "central_50": 0.4300000071525574,
+            "central_90": 0.8299999833106995
+          },
+          "checks": {
+            "ks_pvals": [
+              0.00766267953440547,
+              0.47155702114105225
+            ],
+            "c2st_ranks": [
+              0.5225,
+              0.5349999999999999
+            ],
+            "c2st_dap": [
+              0.465,
+              0.525
+            ]
+          }
+        }
+      }
+    ],
+    "campaign": {
+      "boundary": "simulator run",
+      "binding": "fake",
+      "n_runs": 10203,
+      "cost_model": {
+        "model": "T(N) = T_fixed + N * t_marginal",
+        "points": [
+          {
+            "n_objects": 10,
+            "repetitions": 1,
+            "median_wall_seconds": 0.0679752929991082,
+            "wall_seconds": [
+              0.0679752929991082
+            ]
+          }
+        ],
+        "warmup_runs_excluded": [],
+        "fit": {
+          "available": false,
+          "reason": "a straight-line fit needs at least two distinct population sizes; this experiment ran one, which is exactly the defect the sweep exists to remove"
+        },
+        "fixed_cost_from_log": {
+          "available": false,
+          "reason": "phase classification is pinned to the sorcha binding"
+        }
+      },
+      "seeds_recovered": {
+        "n_runs": 10203,
+        "all_recovered": true,
+        "distinct_seeds": 10203,
+        "examples": [
+          {
+            "label": "draw-0000",
+            "base_seed": 6364769,
+            "source": "runs/sp1-training-budget/campaign/draw-0000/detections.log"
+          },
+          {
+            "label": "draw-0001",
+            "base_seed": 3599125199,
+            "source": "runs/sp1-training-budget/campaign/draw-0001/detections.log"
+          },
+          {
+            "label": "draw-0002",
+            "base_seed": 447922466,
+            "source": "runs/sp1-training-budget/campaign/draw-0002/detections.log"
+          },
+          {
+            "label": "draw-0003",
+            "base_seed": 3599004498,
+            "source": "runs/sp1-training-budget/campaign/draw-0003/detections.log"
+          },
+          {
+            "label": "draw-0004",
+            "base_seed": 3563696424,
+            "source": "runs/sp1-training-budget/campaign/draw-0004/detections.log"
+          },
+          {
+            "label": "draw-0005",
+            "base_seed": 3406715230,
+            "source": "runs/sp1-training-budget/campaign/draw-0005/detections.log"
+          },
+          {
+            "label": "draw-0006",
+            "base_seed": 2836786102,
+            "source": "runs/sp1-training-budget/campaign/draw-0006/detections.log"
+          },
+          {
+            "label": "draw-0007",
+            "base_seed": 1031539342,
+            "source": "runs/sp1-training-budget/campaign/draw-0007/detections.log"
+          },
+          {
+            "label": "draw-0008",
+            "base_seed": 2867046094,
+            "source": "runs/sp1-training-budget/campaign/draw-0008/detections.log"
+          },
+          {
+            "label": "draw-0009",
+            "base_seed": 1454671083,
+            "source": "runs/sp1-training-budget/campaign/draw-0009/detections.log"
+          }
+        ]
+      },
+      "peak_rss_bytes": {
+        "available": true,
+        "max": 26804224,
+        "n_runs_measured": 4,
+        "n_runs_excluded_as_too_short": 10199,
+        "source": "proc_vm_hwm, largest single process in the run's process tree"
+      },
+      "detection_efficiency": {
+        "n_runs": 10200,
+        "median_fraction_objects_detected": 0.2,
+        "median_detections_per_object": 19.3,
+        "total_objects": 102000,
+        "total_objects_detected": 18147,
+        "total_detections": 2234072
+      },
+      "bytes_per_detection": {
+        "median": 219.01307189542484,
+        "n_runs": 8767
+      }
+    }
+  },
+  "manifests": {
+    "root": "runs/sp1-training-budget",
+    "n_manifests": 20413,
+    "by_stage": {
+      "campaign": 10203,
+      "dataset": 1,
+      "library": 1,
+      "population": 10203,
+      "snapshot": 1,
+      "training": 4
+    },
+    "examples": [
+      "runs/sp1-training-budget/campaign/draw-0000/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0001/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0002/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0003/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0004/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0005/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0006/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0007/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0008/campaign.manifest.json",
+      "runs/sp1-training-budget/campaign/draw-0009/campaign.manifest.json"
+    ]
+  }
+}
