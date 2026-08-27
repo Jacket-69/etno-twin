@@ -221,12 +221,6 @@ tree — measuring through the dispatcher reported 15 MB, an empty interpreter.
 - Seed recovery is covered by a canary test over a committed real log, including
   near-misses that must fail rather than parse.
 
-## Compliance / verification
-
-To be completed when the decision is made. Expected mechanism: import-linter contracts
-over module boundaries, plus an integration test that exercises the core against fake
-simulators with no Fortran toolchain present.
-
 ## References
 
 - Thesis proposal §5–§13 — `~/Documentos/CELAENO/Proyectos/Gemelo Digital Transneptuniano/Propuesta v1 — gemelo digital de la población transneptuniana extrema (2026-08-17).md`
